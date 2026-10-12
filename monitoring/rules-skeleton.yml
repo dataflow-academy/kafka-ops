@@ -25,7 +25,7 @@ groups:
         annotations:
           summary: Partitions have no leader
       - alert: NoSingleActiveController
-        expr: sum(kafka_controller_kafkacontroller_activecontrollercount) != 1
+        expr: sum(kafka_controller_kafkacontroller_activecontrollercount) != 1 or absent(kafka_controller_kafkacontroller_activecontrollercount)
         for: TODO
         labels: { severity: TODO }
         annotations:

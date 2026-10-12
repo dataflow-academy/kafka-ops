@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Installs the Strimzi operator (pinned in versions.env) into the namespace `kafka`. Run it on node1.
-# Idempotent. cluster/prepare.sh and hello/prepare.sh call it; participants do the same by hand in the
-# first lab.
+# Installs a Strimzi operator release into the namespace `kafka`. Run it on node1. Idempotent.
+#
+#   ./operator.sh [version]     default: STRIMZI_VERSION from versions.env
+#
+# cluster/prepare.sh and hello/prepare.sh call it without an argument; the upgrade and the ZooKeeper
+# migration labs pass the release they need. A version without a checksum in versions.env is refused.
 #
 # The install file is downloaded from the Strimzi release page with the version and checksum pinned in
 # versions.env. That is the flow of Strimzi's own documentation, so participants meet what they will meet
@@ -10,13 +13,15 @@
 need kubectl; need curl
 kube_ready || die "kubectl cannot reach the cluster. Run k3s/prepare.sh first."
 
-STRIMZI_URL="https://github.com/strimzi/strimzi-kafka-operator/releases/download/${STRIMZI_VERSION}/strimzi-cluster-operator-${STRIMZI_VERSION}.yaml"
-sha_var="STRIMZI_INSTALL_SHA256_${STRIMZI_VERSION//./_}"
+version="${1:-$STRIMZI_VERSION}"
+STRIMZI_URL="https://github.com/strimzi/strimzi-kafka-operator/releases/download/${version}/strimzi-cluster-operator-${version}.yaml"
+sha_var="STRIMZI_INSTALL_SHA256_${version//./_}"
+[ -n "${!sha_var:-}" ] || die "No checksum for Strimzi ${version} in versions.env (${sha_var}). Add it before installing."
 
 log "Namespace ${KAFKA_NAMESPACE}"
 kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
-log "Strimzi ${STRIMZI_VERSION}"
+log "Strimzi ${version}"
 tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
 curl -sfL "$STRIMZI_URL" -o "$tmp" || die "Download failed: $STRIMZI_URL"
 echo "${!sha_var}  $tmp" | sha256sum -c --status || die "Checksum mismatch for $STRIMZI_URL"

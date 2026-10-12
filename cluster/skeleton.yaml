@@ -1,4 +1,5 @@
-# Skeleton for the cluster design lab. Copy it, replace every TODO, then `kubectl apply -f` it.
+# Skeleton for the cluster design lab. `cluster/skeleton.sh` writes it to ~/my-cluster.yaml with the versions
+# from versions.env filled in; then replace every TODO and `kubectl apply -f` the file.
 # As it stands the file is rejected: a TODO is not a number.
 #
 # Fixed for the next days (do not rename): the cluster is called `my-cluster`, the node pools
@@ -84,6 +85,8 @@ metadata:
   namespace: kafka
 spec:
   kafka:
+    version: ${KAFKA_VERSION}
+    metadataVersion: ${KAFKA_METADATA_VERSION}
     # The node name becomes broker.rack, so replicas of a partition spread over the nodes.
     rack:
       topologyKey: kubernetes.io/hostname
