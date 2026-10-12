@@ -50,7 +50,7 @@ for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry
 done
 
 "$HERE/apply.sh" "$MODE"
-for d in scada-telemetry leitwarte prognose abrechnung alarme; do
+for d in scada-telemetry assets-stammdaten leitwarte prognose abrechnung alarme; do
   kubectl -n windpark rollout status "deployment/$d" --timeout=240s || true
 done
 kubectl -n windpark get pods

@@ -17,7 +17,7 @@ create them themselves in the onboarding lab and then run `kubectl apply -k wind
 | Team | Application | Reads / writes |
 |---|---|---|
 | SCADA | `scada-telemetry`, Deployment | writes `nordwind.scada.public.turbine-telemetry.event` |
-| Assets | `assets-stammdaten`, CronJob every 2 minutes | writes `nordwind.assets.public.turbine-registry.state` and `...park-registry.state` (compacted) |
+| Assets | `assets-stammdaten`, Deployment (a snapshot every 20 seconds, the pod ends on the first failed delivery) | writes `nordwind.assets.public.turbine-registry.state` and `...park-registry.state` (compacted) |
 | Leitwarte | `leitwarte`, 2 replicas | reads telemetry, group `leitwarte` |
 | Abrechnung | `abrechnung` | reads telemetry, group `abrechnung` (classic group protocol) |
 | Prognose | `prognose` | reads telemetry, group `prognose` |
@@ -37,7 +37,7 @@ a repair is a copy of that file under `fixes/<name>/` without the repaired fault
 | F3 | Alarme built its own topic | `windpark_alerts`, one partition, one replica, `min.insync.replicas=1` |
 | F4 | Prognose falls behind | CPU limit 50m |
 | F5 | SCADA writes with `acks=1` | `KAFKA_ACKS=1` and `KAFKA_ENABLE_IDEMPOTENCE=false` |
-| F6 | Traps from the onboarding requests | `topics/as-requested`: 500 partitions, `min.insync.replicas=3` on the registries; the rolling restart of the metrics lab then fails the Assets job |
+| F6 | Traps from the onboarding requests | `topics/as-requested`: 500 partitions, `min.insync.replicas=3` on the registries; the rolling restart of the metrics lab then makes the Assets pod fail and restart |
 
 Behaviour worth knowing when repairing:
 
