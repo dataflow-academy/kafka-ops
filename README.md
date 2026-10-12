@@ -12,7 +12,7 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`k3s/`](k3s) | k3s v1.36 on three nodes (server on node1, agents on node2 and node3), kubeconfig for `user` | three VMs reaching each other with `ssh node1..3` |
 | [`cluster/`](cluster) | Strimzi operator, Kafka cluster `my-cluster` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
 | [`monitoring/`](monitoring) | Prometheus, Grafana with the Strimzi dashboards, Kafka UI | `cluster/` |
-| [`workload/`](workload) | Topic, wind park producer and consumers (`./prepare.sh [overlay]`) | `cluster/` |
+| [`workload/`](workload) | Legacy: the first wind park layout, superseded by `windpark/` (see the training labs). Topic, producer and consumers (`./prepare.sh [overlay]`) | `cluster/` |
 | [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
 
 All versions are pinned in exactly one file: [`versions.env`](versions.env). Nothing else in the repository
@@ -31,7 +31,7 @@ The rule is "current release minus one", so that the upgrade lab has a real step
 
 ## The wind park workload
 
-Producer and consumer are the JSON applications of the training's template collection, run unchanged as
+Producer and consumer are the JSON applications of the Nordwind wind park, run unchanged as
 Kubernetes Deployments. Every knob is an environment variable that comes from a ConfigMap, so a scenario is a
 patch, never a rebuild:
 

@@ -1,4 +1,6 @@
-# Wind park workload
+# Wind park workload (legacy)
+
+Superseded by `windpark/` (own namespace, faults F1-F6, repairs). Kept only as the reference for the Kustomize layout; the labs do not use it.
 
 See the root README for the knobs and the Kustomize layout.
 
