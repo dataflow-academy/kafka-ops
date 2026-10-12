@@ -1,0 +1,13 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: ${PERF_NAME}
+  labels:
+    strimzi.io/cluster: ${KAFKA_CLUSTER}
+    app.kubernetes.io/part-of: perf
+spec:
+  partitions: ${PERF_PARTITIONS}
+  replicas: ${PERF_REPLICAS}
+  config:
+    min.insync.replicas: "${PERF_MIN_ISR}"
+    retention.ms: "600000"

@@ -1,0 +1,26 @@
+# One kafka-producer-perf-test run as a Job. Rendered by run.sh.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${PERF_NAME}
+  labels: { app.kubernetes.io/name: perf-test, app.kubernetes.io/part-of: perf }
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: perf-test, app.kubernetes.io/part-of: perf }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: perf
+          image: quay.io/strimzi/kafka:${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}
+          command: [sh, -c]
+          args:
+            - >-
+              bin/kafka-producer-perf-test.sh --topic ${PERF_NAME}
+              --num-records ${PERF_RECORDS} --record-size ${PERF_RECORD_SIZE} --throughput ${PERF_THROUGHPUT}
+              --producer-props bootstrap.servers=${KAFKA_CLUSTER}-kafka-bootstrap:9092 ${PERF_PRODUCER_PROPS}
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { memory: 1Gi }
