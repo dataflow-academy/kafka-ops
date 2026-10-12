@@ -33,7 +33,7 @@ kubectl apply -f - >/dev/null <<YAML
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata: { name: $probe, namespace: $NS, labels: { strimzi.io/cluster: $KAFKA_CLUSTER } }
-spec: { topicName: chaos.check.probe, partitions: 1, replicas: 3 }
+spec: { topicName: nordwind.chaos.private.check-probe.event, partitions: 1, replicas: 3 }
 YAML
 kubectl -n "$NS" wait kafkatopic/$probe --for=condition=Ready --timeout=60s >/dev/null 2>&1 || bad "a new KafkaTopic does not become Ready"
 kubectl -n "$NS" delete kafkatopic "$probe" --wait=false >/dev/null 2>&1

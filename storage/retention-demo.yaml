@@ -1,0 +1,13 @@
+# Topic for the retention experiment: records should be gone after one minute. Are they?
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-storage-retention
+  namespace: kafka
+  labels: { strimzi.io/cluster: my-cluster, training/experiment: storage }
+spec:
+  topicName: nordwind.storage.private.retention-demo.event
+  partitions: 1
+  replicas: 3
+  config:
+    retention.ms: "60000"
