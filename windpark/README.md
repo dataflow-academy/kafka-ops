@@ -7,8 +7,10 @@ Nothing here needs code changes: every application is configured through a Confi
     ./prepare.sh               # the wind park as participants meet it: faults F1-F5 built in
     ./prepare.sh as-requested  # same, plus the topics approved exactly as requested (fault F6)
     ./prepare.sh healthy       # no faults
+    ./apply.sh                 # only the applications (the onboarding lab; the topics are created by the participants)
     ./reset.sh                 # remove everything (the cluster stays)
 
+`requests/topics-skeleton.yaml` is the file participants fill in for the three topics of the onboarding requests.
 `prepare.sh` creates the three topics of the onboarding requests if they do not exist yet. Participants
 create them themselves in the onboarding lab and then run `kubectl apply -k windpark/`.
 
