@@ -10,7 +10,12 @@ declare -A replicas=([leitwarte]=2 [prognose]=1 [abrechnung]=1)
 
 for d in "${!replicas[@]}"; do kubectl -n windpark scale "deployment/$d" --replicas=0 >/dev/null; done
 for d in "${!replicas[@]}"; do kubectl -n windpark wait --for=delete pod -l "app.kubernetes.io/name=$d" --timeout=120s >/dev/null 2>&1 || true; done
-sleep 10   # the group coordinator forgets the members after the session timeout
+# The group coordinator forgets the members after the session timeout; offsets can only change on an empty group.
+for _ in $(seq 30); do
+  states=$(kubectl -n "$NS" exec deploy/kafka-tools -- kafka-consumer-groups.sh --bootstrap-server "my-cluster-kafka-bootstrap:9092" --list --state 2>/dev/null || true)
+  if ! grep -E '^(leitwarte|prognose|abrechnung) ' <<<"$states" | grep -vq 'Empty'; then break; fi
+  sleep 5
+done
 for d in "${!replicas[@]}"; do
   kubectl -n "$NS" exec deploy/kafka-tools -- kafka-consumer-groups.sh --bootstrap-server "my-cluster-kafka-bootstrap:9092" \
     --group "$d" --topic "$TOPIC" --reset-offsets --to-latest --execute >/dev/null 2>&1 || echo "group $d: offsets not reset (is the application still running?)"
