@@ -22,16 +22,20 @@ JSON
 # Already on every node: k3s ships busybox for its volume provisioner, and busybox has nsenter.
 helper_image() { echo "rancher/mirrored-library-busybox:1.37.0"; }
 
-# Scales the operator up and makes sure it notices pods that were deleted while it was away:
-# a freshly started operator sometimes sits in a reconciliation that waits for the missing pod.
+# Scales the operator up and makes it notice pods that were deleted while it was away. A freshly started
+# operator only recreates a missing pod when its StrimziPodSet changes (otherwise after about five minutes), so
+# the PodSets get an annotation.
 operator_up() {
   operator_scale 1
-  local i
-  for i in 1 2 3 4 5 6; do
-    sleep 10
-    [ "$(kubectl -n "$NS" get pods -l strimzi.io/kind=Kafka --no-headers 2>/dev/null | wc -l)" -ge 6 ] && return 0
+  kubectl -n "$NS" rollout status deployment/strimzi-cluster-operator --timeout=180s >/dev/null
+  sleep 15
+  nudge_podsets
+}
+nudge_podsets() {
+  local ps
+  for ps in $(kubectl -n "$NS" get strimzipodset -o name 2>/dev/null); do
+    kubectl -n "$NS" annotate "$ps" "training/nudge=$(date +%s)" --overwrite >/dev/null
   done
-  kubectl -n "$NS" delete pod -l strimzi.io/kind=cluster-operator >/dev/null 2>&1 || true
 }
 operator_scale() { kubectl -n "$NS" scale deployment/strimzi-cluster-operator --replicas="$1" >/dev/null; }
 broker_pod()     { echo "my-cluster-broker-$1"; }

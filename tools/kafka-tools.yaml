@@ -29,6 +29,8 @@ spec:
           command: ["sleep", "infinity"]
           env:
             - { name: PATH, value: "/opt/kafka/bin:/usr/local/bin:/usr/bin:/bin" }
+            # Every command is a JVM of its own; keep them small so several fit next to each other.
+            - { name: KAFKA_HEAP_OPTS, value: "-Xms32m -Xmx160m" }
           resources:
             requests: { cpu: 50m, memory: 128Mi }
-            limits: { memory: 1Gi }
+            limits: { memory: 2Gi }

@@ -1,0 +1,42 @@
+# Three topics for the failure experiments, one per class of data. Fill in the TODOs with the decision of the group:
+#   min.insync.replicas             1 to 3
+#   unclean.leader.election.enable  "true" or "false" (a string)
+# The third part of the triple, acks, belongs to the producer (see the lab).
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-chaos-telemetry
+  labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
+spec:
+  topicName: nordwind.chaos.private.telemetry.event
+  partitions: 1
+  replicas: 3
+  config:
+    min.insync.replicas: "TODO"
+    unclean.leader.election.enable: "TODO"
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-chaos-billing
+  labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
+spec:
+  topicName: nordwind.chaos.private.billing.event
+  partitions: 1
+  replicas: 3
+  config:
+    min.insync.replicas: "TODO"
+    unclean.leader.election.enable: "TODO"
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-chaos-alerts
+  labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
+spec:
+  topicName: nordwind.chaos.private.alerts.event
+  partitions: 1
+  replicas: 3
+  config:
+    min.insync.replicas: "TODO"
+    unclean.leader.election.enable: "TODO"
