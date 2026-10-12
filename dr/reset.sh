@@ -33,6 +33,12 @@ print([e["name"] for e in env].index("STRIMZI_NAMESPACE"))')"
   kubectl "${OP[@]}" rollout status deployment/strimzi-cluster-operator --timeout=180s
 fi
 
+# The Kafka resource still says Ready after the "disaster": wait for the pods themselves.
+all_ready() { [ "$(kubectl "${OP[@]}" get pods -l "strimzi.io/cluster=${KAFKA_CLUSTER},strimzi.io/component-type=kafka" \
+  -o jsonpath='{.items[*].status.containerStatuses[0].ready}' | wc -w)" -ge 6 ] \
+  && ! kubectl "${OP[@]}" get pods -l "strimzi.io/cluster=${KAFKA_CLUSTER},strimzi.io/component-type=kafka" \
+  -o jsonpath='{.items[*].status.containerStatuses[0].ready}' | grep -q false; }
+wait_for "the first cluster's pods" 900 all_ready
 kubectl "${OP[@]}" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=900s
 if kubectl get namespace windpark >/dev/null 2>&1; then
   log "Wind park back on the first cluster"

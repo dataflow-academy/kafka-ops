@@ -14,6 +14,8 @@ op="$(kubectl "${N[@]}" get deployment strimzi-cluster-operator -o jsonpath='{.s
 want="${KAFKA_VERSION}/${KAFKA_METADATA_VERSION}/${STRIMZI_VERSION}"
 if [ "$state" != "$want" ] || [ "${op##*:}" != "$STRIMZI_VERSION" ]; then
   log "Cluster is not at the installed versions (is: ${state:-none}, operator ${op##*:}); rebuilding"
+  # Topics and users carry finalizers that only the Entity Operator removes: delete them while it still runs.
+  kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic,kafkauser --all --ignore-not-found --timeout=180s >/dev/null 2>&1 || true
   "$HERE/cluster/reset.sh"
   "$HERE/cluster/prepare.sh"
   "$HERE/monitoring/prepare.sh"
