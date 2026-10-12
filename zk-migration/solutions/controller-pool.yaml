@@ -1,0 +1,26 @@
+# The KRaft controllers that take over from ZooKeeper. Dedicated nodes: the migration does not work with nodes
+# that have both roles.
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: controller
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  replicas: 3
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 5Gi
+        deleteClaim: true
+  resources:
+    requests: { memory: 768Mi, cpu: 200m }
+    limits: { memory: 1Gi }
+  jvmOptions:
+    "-Xms": 384m
+    "-Xmx": 384m
