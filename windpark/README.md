@@ -35,7 +35,7 @@ a repair is a copy of that file under `fixes/<name>/` without the repaired fault
 | F1 | Abrechnung reads a topic with a typo | `TOPIC=...turbine-telemetery.event`; topic auto-creation makes it an empty topic |
 | F2 | Wartung writes `"n/a"` into `power_kw` | every consumer that reads the record stops (poison pill); a new one arrives every 20 minutes |
 | F3 | Alarme built its own topic | `windpark_alerts`, one partition, one replica, `min.insync.replicas=1` |
-| F4 | Prognose falls behind | CPU limit 50m |
+| F4 | Prognose falls behind | CPU limit 25m, it needs about 30m at 200 records/s |
 | F5 | SCADA writes with `acks=1` | `KAFKA_ACKS=1` and `KAFKA_ENABLE_IDEMPOTENCE=false` |
 | F6 | Traps from the onboarding requests | `topics/as-requested`: 500 partitions, `min.insync.replicas=3` on the registries; the rolling restart of the metrics lab then makes the Assets pod fail and restart |
 

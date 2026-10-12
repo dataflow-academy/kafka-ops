@@ -1,4 +1,4 @@
-# F4: Prognose runs with a CPU limit of 50m and falls behind.
+# F4: Prognose runs with a CPU limit of 25m and falls behind (it needs about 30m for 200 records/s).
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 patches:
@@ -6,7 +6,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/template/spec/containers/0/resources/limits/cpu
-        value: 50m
+        value: 25m
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/cpu
-        value: 25m
+        value: 10m
