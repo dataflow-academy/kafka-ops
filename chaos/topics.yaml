@@ -6,6 +6,7 @@ apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: nordwind-chaos-telemetry
+  namespace: kafka
   labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
 spec:
   topicName: nordwind.chaos.private.telemetry.event
@@ -19,6 +20,7 @@ apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: nordwind-chaos-billing
+  namespace: kafka
   labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
 spec:
   topicName: nordwind.chaos.private.billing.event
@@ -32,6 +34,7 @@ apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: nordwind-chaos-alerts
+  namespace: kafka
   labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
 spec:
   topicName: nordwind.chaos.private.alerts.event

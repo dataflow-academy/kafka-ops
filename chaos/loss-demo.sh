@@ -54,4 +54,5 @@ stored=$((after - before))
 echo
 printf 'acks=%s\nacknowledged by the broker: %s\nrejected with an error:      %s\nstored in the topic:         %s\n' "$acks" "$acked" "$failed" "$stored"
 if [ "$acked" -gt "$stored" ]; then printf 'acknowledged but gone:       %s\n' "$((acked - stored))"; else echo "acknowledged but gone:       0"; fi
+echo "$(date +%T) $topic acks=$acks acknowledged=$acked rejected=$failed stored=$stored gone=$((acked > stored ? acked - stored : 0))" >> "$HOME/loss-demo.log"
 rm -f "$out"
