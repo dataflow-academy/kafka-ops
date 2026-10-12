@@ -6,6 +6,6 @@ step to take: a new Strimzi minor version, a new Kafka minor version, and a `met
 
 | File | Purpose |
 |---|---|
-| `operator.sh [version]` | Installs a Strimzi release the way the Strimzi documentation does (download, sha256 from `versions.env`, namespace, apply). Does not touch the `Kafka` resource. Default: the upgrade version |
-| `prepare.sh` | Start state: cluster at the install versions with monitoring and wind park. A cluster that was upgraded is rebuilt (Kafka does not go back across the metadata version) |
+| `operator.sh [version]` | Wrapper around `../cluster/operator.sh [version]`, which installs a Strimzi release the way the Strimzi documentation does (download, sha256 from `versions.env`, namespace, apply) and does not touch the `Kafka` resource. Default: the upgrade version |
+| `prepare.sh` | Start state: cluster at the install versions with monitoring and wind park. A cluster that was upgraded is rebuilt (Strimzi does not roll a raised metadata version back). A cluster at the install versions that still has authorization switched on gets `../security/reset.sh` first |
 | `reset.sh` | The same rebuild, unconditionally; destroys all data |

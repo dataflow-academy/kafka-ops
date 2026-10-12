@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Hands a Kafka user to a team's application: copies the user's Secret and the cluster CA into the team's
-# namespace (a Secret cannot be mounted across namespaces) and sets the six client settings on the
+# namespace (a Secret cannot be mounted across namespaces) and sets the bootstrap address and six client settings on the
 # Deployment that make the application connect with mutual TLS to the tls listener.
 #
 #   ./connect-app.sh <deployment> <user> [namespace]      e.g.  ./connect-app.sh leitwarte leitwarte

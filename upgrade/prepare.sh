@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Start state for the upgrade lab: the cluster runs the installed versions from versions.env (Strimzi, Kafka
 # and metadata version), is Ready, and the monitoring and the wind park run on it. A cluster that was upgraded
-# cannot be taken back (Kafka does not downgrade across the metadata version), so a changed cluster is rebuilt
+# cannot be taken back (Strimzi does not roll a raised metadata version back), so a changed cluster is rebuilt
 # from scratch: cluster/reset.sh, cluster/prepare.sh, then monitoring and the wind park. Run it on node1.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
@@ -20,6 +20,10 @@ if [ "$state" != "$want" ] || [ "${op##*:}" != "$STRIMZI_VERSION" ]; then
   "$HERE/cluster/prepare.sh"
   "$HERE/monitoring/prepare.sh"
   "$HERE/windpark/prepare.sh" healthy
+elif [ -n "$(kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" -o jsonpath='{.spec.kafka.authorization.type}')" ]; then
+  # Right versions, but the security lab was not cleaned up: authorization on and the wind park locked out.
+  log "Authorization is still on (security lab); running security/reset.sh"
+  "$HERE/security/reset.sh"
 fi
 kubectl "${N[@]}" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=600s
 kubectl -n windpark get deployment leitwarte >/dev/null 2>&1 || "$HERE/windpark/prepare.sh" healthy

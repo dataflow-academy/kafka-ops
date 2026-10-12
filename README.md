@@ -12,10 +12,19 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`k3s/`](k3s) | k3s v1.36 on three nodes (server on node1, agents on node2 and node3), kubeconfig for `user` | three VMs reaching each other with `ssh node1..3` |
 | [`hello/`](hello) | k3s, the Strimzi operator and the small cluster `hello` with one message (first lab) | three VMs reaching each other with `ssh node1..3` |
 | [`cluster/`](cluster) | Strimzi operator, Kafka cluster `my-cluster` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
-| [`monitoring/`](monitoring) | Metrics switched on in the Kafka cluster (rolling restart), Prometheus, Grafana with the Strimzi dashboards, Kafka UI | `cluster/` |
 | [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
-| [`workload/`](workload) | Topic, wind park producer and consumers (`./prepare.sh [overlay]`) | `cluster/` |
-| [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
+| [`monitoring/`](monitoring) | Metrics switched on in the Kafka cluster (rolling restart), Prometheus, Grafana with the Strimzi dashboards, Kafka UI | `cluster/` |
+| [`tools/`](tools) | The Pod `kafka-tools` with the Kafka command line tools, used from the second lab on | `cluster/` |
+| [`chaos/`](chaos) | Six failures of the platform, a script that causes one at random and one that heals all of them | `cluster/`, `monitoring/`, `windpark/` |
+| [`governance/`](governance) | The state after the wind park repairs, topic auto-creation on, no policies; material for the naming and limit policies | `cluster/`, `windpark/` |
+| [`storage/`](storage) | Cluster, monitoring and wind park running, no experiment topics; retention and compaction experiments | `cluster/`, `windpark/` |
+| [`rebalance/`](rebalance) | Three brokers, no Cruise Control, topic `nordwind.platform.private.rebalance-demo.event` with about 600 MB | `cluster/` |
+| [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization | `cluster/`, `windpark/` |
+| [`dr/`](dr) | Only the first cluster; the second cluster `dr-cluster` in `kafka-dr` and MirrorMaker 2 are built in the lab | `cluster/`, `windpark/` |
+| [`upgrade/`](upgrade) | Cluster at the install versions with monitoring and wind park; a changed cluster is rebuilt | `k3s/` |
+| [`zk-migration/`](zk-migration) | Strimzi 0.45 and a ZooKeeper-based cluster with load; `reset.sh` restores the modern stack | `k3s/` |
+| [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job on a topic named by the convention | `cluster/` |
+| [`workload/`](workload) | Legacy: topic, wind park producer and consumers (`./prepare.sh [overlay]`), replaced by `windpark/` | `cluster/` |
 
 All versions are pinned in exactly one file: [`versions.env`](versions.env). Nothing else in the repository
 contains a version number of Strimzi, Kafka, k3s, Prometheus, Grafana, Kafka UI or the workload images.

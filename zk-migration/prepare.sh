@@ -25,7 +25,8 @@ if ! pristine; then
   kubectl "${N[@]}" delete kafkatopic,kafkauser --all --ignore-not-found --timeout=180s >/dev/null 2>&1 || true
   "$HERE/cluster/reset.sh"
   log "Strimzi ${STRIMZI_ZK_VERSION}"
-  "$HERE/upgrade/operator.sh" "$STRIMZI_ZK_VERSION"
+  # Argument plus environment: also right for a cluster/operator.sh that only reads STRIMZI_VERSION.
+  STRIMZI_VERSION="$STRIMZI_ZK_VERSION" "$HERE/cluster/operator.sh" "$STRIMZI_ZK_VERSION"
   # The default limit of 256 Mi is too small for this operator once node pools and the migration come in (OOMKilled).
   kubectl "${N[@]}" set resources deployment/strimzi-cluster-operator --limits=memory=768Mi --requests=memory=512Mi >/dev/null
   kubectl "${N[@]}" rollout status deployment/strimzi-cluster-operator --timeout=180s

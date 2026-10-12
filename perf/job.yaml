@@ -18,7 +18,7 @@ spec:
           command: [sh, -c]
           args:
             - >-
-              bin/kafka-producer-perf-test.sh --topic ${PERF_NAME}
+              bin/kafka-producer-perf-test.sh --topic ${PERF_TOPIC}
               --num-records ${PERF_RECORDS} --record-size ${PERF_RECORD_SIZE} --throughput ${PERF_THROUGHPUT}
               --producer-props bootstrap.servers=${KAFKA_CLUSTER}-kafka-bootstrap:9092 ${PERF_PRODUCER_PROPS}
           resources:
