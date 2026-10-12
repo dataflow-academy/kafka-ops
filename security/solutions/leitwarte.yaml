@@ -1,0 +1,25 @@
+# Team Leitwarte reads the telemetry in the consumer group `leitwarte`. Without Read on the group a consumer
+# can neither join nor commit offsets: the topic ACL alone is not enough.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaUser
+metadata:
+  name: leitwarte
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: nordwind.scada.public.turbine-telemetry.event
+          patternType: literal
+        operations: [Read, Describe]
+      - resource:
+          type: group
+          name: leitwarte
+          patternType: literal
+        operations: [Read]
