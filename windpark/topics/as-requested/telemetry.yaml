@@ -1,0 +1,13 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind.scada.public.turbine-telemetry.event
+  namespace: kafka
+  labels: { strimzi.io/cluster: my-cluster }
+spec:
+  partitions: 500
+  replicas: 3
+  config:
+    min.insync.replicas: "2"
+    retention.ms: "604800000"
+    segment.bytes: "67108864"

@@ -1,0 +1,12 @@
+# F4: Prognose runs with a CPU limit of 50m and falls behind.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+patches:
+  - target: { kind: Deployment, name: prognose }
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 50m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 25m

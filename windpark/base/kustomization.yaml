@@ -1,0 +1,68 @@
+# The healthy wind park: six teams with their applications. Every knob is a ConfigMap value.
+# ${...} placeholders are filled from ../../versions.env by prepare.sh.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - scada-producer.yaml
+  - leitwarte.yaml
+  - prognose.yaml
+  - abrechnung.yaml
+  - assets-stammdaten.yaml
+  - wartung.yaml
+  - alarme.yaml
+# A changed ConfigMap gets a new name, so the Deployments roll out by themselves.
+generatorOptions:
+  labels:
+    app.kubernetes.io/part-of: wind-park
+configMapGenerator:
+  - name: scada-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      # 50 turbines report per tick: 1000 ms = 50 records/s, 100 ms = 500 records/s.
+      - TICK_INTERVAL_MS=1000
+      # KAFKA_<NAME> becomes the client config <name> (underscore = dot).
+      - KAFKA_ACKS=all
+      - KAFKA_LINGER_MS=10
+      - KAFKA_COMPRESSION_TYPE=zstd
+      - JAVA_OPTS=-XX:MaxRAMPercentage=70
+  - name: leitwarte-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - GROUP_ID=leitwarte
+      - JAVA_OPTS=-XX:MaxRAMPercentage=70
+  - name: prognose-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - GROUP_ID=prognose
+      - JAVA_OPTS=-XX:MaxRAMPercentage=70
+  - name: abrechnung-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - GROUP_ID=abrechnung
+  - name: assets-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TURBINE_REGISTRY_TOPIC=nordwind.assets.public.turbine-registry.state
+      - PARK_REGISTRY_TOPIC=nordwind.assets.public.park-registry.state
+  - name: wartung-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - TURBINE=alpha-ventus-07
+      - POWER_KW=0.0
+  - name: alarme-config
+    namespace: windpark
+    literals:
+      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - TOPIC=nordwind.alarme.public.windpark-alert.event

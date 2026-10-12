@@ -1,0 +1,60 @@
+# Team Alarme: writes an alert record every ten seconds. The team created its topic itself
+# (as a KafkaTopic in Git); the healthy variant follows the naming convention and has three replicas.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind.alarme.public.windpark-alert.event
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+    app.kubernetes.io/part-of: wind-park
+spec:
+  partitions: 3
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alarme
+  namespace: windpark
+  labels: { app.kubernetes.io/name: alarme, app.kubernetes.io/part-of: wind-park, team: alarme }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: alarme }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: alarme, app.kubernetes.io/part-of: wind-park, team: alarme }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: alerts
+          image: quay.io/strimzi/kafka:${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef: { name: alarme-config }
+          env:
+            - { name: KAFKA_HEAP_OPTS, value: "-Xmx128m" }
+          command:
+            - /bin/bash
+            - -c
+            - |
+              i=0
+              while true; do
+                i=$((i+1))
+                printf 'alert-%s|{"alert":"wind-gust","park":"alpha-ventus","seq":%s}\n' "$i" "$i"
+                sleep 10
+              done |
+              /opt/kafka/bin/kafka-console-producer.sh \
+                --bootstrap-server "$BOOTSTRAP_SERVERS" --topic "$TOPIC" \
+                --reader-property parse.key=true --reader-property 'key.separator=|'
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { cpu: 50m, memory: 192Mi }
+            limits: { memory: 384Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: [ALL] }
+      volumes:
+        - { name: tmp, emptyDir: {} }
