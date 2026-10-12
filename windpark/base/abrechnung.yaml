@@ -1,4 +1,4 @@
-# Team Abrechnung: reads the telemetry in the consumer group `abrechnung` (Python application).
+# Team Abrechnung: reads the telemetry in the consumer group `abrechnung` (an older application: it still uses the classic group protocol).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,15 +16,15 @@ spec:
       securityContext: { runAsNonRoot: true, runAsUser: 1001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: consumer
-          image: ${WIND_IMAGE_REGISTRY}/python/wind-turbine-consumer-json:${WIND_IMAGE_TAG}
+          image: ${WIND_IMAGE_REGISTRY}/java/wind-turbine-consumer-json:${WIND_IMAGE_TAG}
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef: { name: abrechnung-config }
           volumeMounts:
             - { name: tmp, mountPath: /tmp }
           resources:
-            requests: { cpu: 50m, memory: 128Mi }
-            limits: { memory: 256Mi }
+            requests: { cpu: 100m, memory: 384Mi }
+            limits: { memory: 512Mi }
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

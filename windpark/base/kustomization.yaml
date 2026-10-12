@@ -21,8 +21,8 @@ configMapGenerator:
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
       - TOPIC=nordwind.scada.public.turbine-telemetry.event
-      # 50 turbines report per tick: 1000 ms = 50 records/s, 100 ms = 500 records/s.
-      - TICK_INTERVAL_MS=1000
+      # 50 turbines report per tick: 1000 ms = 50 records/s, 250 ms = 200 records/s, 100 ms = 500 records/s.
+      - TICK_INTERVAL_MS=250
       # KAFKA_<NAME> becomes the client config <name> (underscore = dot).
       - KAFKA_ACKS=all
       - KAFKA_LINGER_MS=10
@@ -48,6 +48,9 @@ configMapGenerator:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
       - TOPIC=nordwind.scada.public.turbine-telemetry.event
       - GROUP_ID=abrechnung
+      # Older setting of the team: the classic group protocol (the clients default is the new one).
+      - KAFKA_GROUP_PROTOCOL=classic
+      - JAVA_OPTS=-XX:MaxRAMPercentage=70
   - name: assets-config
     namespace: windpark
     literals:

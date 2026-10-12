@@ -17,7 +17,7 @@ create them themselves in the onboarding lab and then run `kubectl apply -k wind
 | SCADA | `scada-telemetry`, Deployment | writes `nordwind.scada.public.turbine-telemetry.event` |
 | Assets | `assets-stammdaten`, CronJob every 2 minutes | writes `nordwind.assets.public.turbine-registry.state` and `...park-registry.state` (compacted) |
 | Leitwarte | `leitwarte`, 2 replicas | reads telemetry, group `leitwarte` |
-| Abrechnung | `abrechnung` (Python) | reads telemetry, group `abrechnung` |
+| Abrechnung | `abrechnung` | reads telemetry, group `abrechnung` (classic group protocol) |
 | Prognose | `prognose` | reads telemetry, group `prognose` |
 | Wartung | `wartung-meldung`, CronJob every 20 minutes | writes one record into the telemetry topic |
 | Alarme | `alarme` | writes an alert every 10 seconds |

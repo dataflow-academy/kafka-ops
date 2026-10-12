@@ -5,3 +5,6 @@ Traefik and the service load balancer are disabled (everything is reached throug
 The nodes talk over the private lab network; the script finds its interface and addresses itself.
 
 `reset.sh` uninstalls k3s from all nodes. Needs `ssh node1..3` and `sudo` on the nodes.
+
+`private-address.sh` prints the private address and interface of the VM it runs on (`10.0.1.1 enp7s0`);
+the first lab uses it for the k3s flags.

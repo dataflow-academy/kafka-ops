@@ -32,7 +32,7 @@ esac
 if [ -n "${STAGE_IMAGES_FROM:-}" ]; then
   need docker
   for spec in java/wind-turbine-producer-json:java/producer-json java/wind-turbine-consumer-json:java/consumer-json \
-              python/wind-turbine-consumer-json:python/consumer-json python/wind-masterdata-producer:python/masterdata-producer; do
+              python/wind-masterdata-producer:python/masterdata-producer; do
     image="${WIND_IMAGE_REGISTRY}/${spec%%:*}:${WIND_IMAGE_TAG}"
     log "Test stopgap: building $image"
     docker image inspect "$image" >/dev/null 2>&1 || docker build -q -t "$image" "$STAGE_IMAGES_FROM/${spec##*:}" >/dev/null

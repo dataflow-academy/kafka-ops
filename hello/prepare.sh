@@ -9,17 +9,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 log "Cluster hello"
 kubectl apply -f "$HERE/hello.yaml"
 kubectl -n "$KAFKA_NAMESPACE" wait kafka/hello --for=condition=Ready --timeout=300s
-kubectl -n "$KAFKA_NAMESPACE" get kafkatopic hello >/dev/null 2>&1 || kubectl apply -f - <<'YAML'
-apiVersion: kafka.strimzi.io/v1
-kind: KafkaTopic
-metadata:
-  name: hello
-  namespace: kafka
-  labels: { strimzi.io/cluster: hello }
-spec:
-  partitions: 1
-  replicas: 1
-YAML
+kubectl apply -f "$HERE/topic.yaml"
 kubectl -n "$KAFKA_NAMESPACE" wait kafkatopic/hello --for=condition=Ready --timeout=120s
 kubectl -n "$KAFKA_NAMESPACE" exec hello-single-0 -- bash -c \
   'echo "Windrad alpha-ventus-07 meldet sich" | /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic hello'
