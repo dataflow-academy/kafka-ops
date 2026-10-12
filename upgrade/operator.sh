@@ -15,5 +15,6 @@ log "Download ${url##*/}"
 curl -sfL "$url" -o "$tmp" || die "Download failed: $url"
 echo "${!sha_var}  $tmp" | sha256sum -c --status || die "Checksum mismatch for $url"
 log "Apply to namespace ${KAFKA_NAMESPACE}"
+kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 sed "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$tmp" | kubectl apply --server-side --force-conflicts -n "$KAFKA_NAMESPACE" -f - >/dev/null
 kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/strimzi-cluster-operator --timeout=180s
