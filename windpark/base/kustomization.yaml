@@ -57,6 +57,9 @@ configMapGenerator:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
       - TURBINE_REGISTRY_TOPIC=nordwind.assets.public.turbine-registry.state
       - PARK_REGISTRY_TOPIC=nordwind.assets.public.park-registry.state
+      # The team does not want a round to hang: give up after 10 seconds.
+      - KAFKA_REQUEST_TIMEOUT_MS=5000
+      - KAFKA_DELIVERY_TIMEOUT_MS=10000
   - name: wartung-config
     namespace: windpark
     literals:
