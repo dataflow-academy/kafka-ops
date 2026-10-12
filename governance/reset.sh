@@ -7,6 +7,7 @@ NS="$KAFKA_NAMESPACE"
 kubectl delete validatingadmissionpolicybinding kafkatopic-naming kafkatopic-limits --ignore-not-found
 kubectl delete validatingadmissionpolicy kafkatopic-naming kafkatopic-limits --ignore-not-found
 kubectl -n "$NS" delete kafkatopic -l training/experiment=governance --ignore-not-found
+rm -f "$HOME/.alerts-copied"
 kubectl -n "$NS" exec deploy/kafka-tools -- kafka-configs.sh --bootstrap-server "my-cluster-kafka-bootstrap:9092" \
   --alter --entity-type clients --entity-name wartung --delete-config producer_byte_rate >/dev/null 2>&1 || true
 current=$(kubectl -n "$NS" get kafka "$KAFKA_CLUSTER" -o "jsonpath={.spec.kafka.config.auto\.create\.topics\.enable}" 2>/dev/null || true)

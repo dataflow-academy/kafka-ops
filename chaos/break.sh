@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Starts one failure on the Kafka cluster. Without an argument it picks one of
-# P1..P6 at random and does not say which. Run it on node1.
+# P4..P6 at random and does not say which (P1..P3 repeat what the lab has just done by hand;
+# name them as the argument if you want them). Run it on node1.
 #
 #   ./break.sh [P1|P2|P3|P4|P5|P6]
 #
@@ -10,7 +11,8 @@
 need kubectl; need jq
 kube_ready || die "kubectl cannot reach the cluster."
 
-pick="${1:-P$((RANDOM % 6 + 1))}"
+pick="${1:-P$((RANDOM % 3 + 4))}"
+touch "$HOME/.chaos-started"   # the lab self-check looks for this file; reset.sh removes it
 brokers=(0 1 2)
 broker="${brokers[$((RANDOM % 3))]}"
 agents=$(kubectl get nodes -l '!node-role.kubernetes.io/control-plane' -o name | sed 's|node/||')

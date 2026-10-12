@@ -12,8 +12,8 @@ Enforced by: TODO (what rejects a wrongly named topic, and where does it look fo
 
 | Setting | Value | Why |
 |---|---|---|
-| `auto.create.topics.enable` | TODO | TODO |
-| `num.partitions` | TODO | TODO |
+| `auto.create.topics.enable` | false | TODO |
+| `num.partitions` | 6 | TODO |
 | `default.replication.factor` | 3 | |
 | `min.insync.replicas` | 2 | |
 
@@ -23,9 +23,9 @@ Enforced by: TODO
 
 | Rule | Value | The failure it prevents |
 |---|---|---|
-| Replicas at least | TODO | TODO |
-| Partitions at most | TODO | TODO |
-| `min.insync.replicas` | TODO | TODO |
+| Replicas at least | 3 | TODO |
+| Partitions at most | 24 | TODO |
+| `min.insync.replicas` | below the replication factor | TODO |
 
 ## 4. Recommended client settings
 
@@ -33,13 +33,15 @@ We can only recommend these, the broker cannot enforce them.
 
 | Setting | Recommendation | Why |
 |---|---|---|
-| `acks` (producer) | TODO | TODO |
-| `enable.idempotence` (producer) | TODO | TODO |
+| `acks` (producer) | all | TODO |
+| `enable.idempotence` (producer) | true | TODO |
 | TODO | TODO | TODO |
 
 ## 5. Quotas
 
-TODO (which clients, which limit, why)
+A team that writes too much is throttled with a quota: per `client.id` as long as there is no authentication, per
+`KafkaUser` with authentication. A client chooses its own `client.id`, so a quota only holds if every application sets a
+fixed one (see section 4).
 
 ## 6. How a team gets a topic
 

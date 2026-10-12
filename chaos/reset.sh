@@ -4,3 +4,4 @@
 kube_ready || die "kubectl cannot reach the cluster."
 "$(dirname "$0")/heal.sh"
 kubectl -n "$NS" delete kafkatopic -l training/experiment=failures --ignore-not-found
+rm -f "$HOME/.chaos-started"
