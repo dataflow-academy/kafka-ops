@@ -1,0 +1,14 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: windpark-alerts
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+    app.kubernetes.io/part-of: wind-park
+spec:
+  topicName: windpark_alerts
+  partitions: 1
+  replicas: 1
+  config:
+    min.insync.replicas: "1"

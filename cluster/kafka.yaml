@@ -1,5 +1,6 @@
 # Kafka cluster, KRaft, three controllers and three brokers on three nodes.
 # auto.create.topics.enable stays at the Kafka default (true) on purpose.
+# No metrics here: the monitoring lab switches them on (monitoring/prepare.sh), which rolls the cluster.
 # ${...} placeholders come from ../versions.env (see prepare.sh).
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
@@ -122,15 +123,6 @@ spec:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
-    metricsConfig:
-      type: jmxPrometheusExporter
-      valueFrom:
-        configMapKeyRef:
-          name: kafka-metrics
-          key: kafka-metrics-config.yml
   entityOperator:
     topicOperator: {}
     userOperator: {}
-  kafkaExporter:
-    topicRegex: ".*"
-    groupRegex: ".*"

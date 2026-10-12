@@ -1,0 +1,53 @@
+# Team Wartung: after every service round the maintenance tool reports the turbine it worked on,
+# as one record in the telemetry topic (written with the console producer).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: wartung-meldung
+  namespace: windpark
+  labels: { app.kubernetes.io/name: wartung-meldung, app.kubernetes.io/part-of: wind-park, team: wartung }
+spec:
+  schedule: "*/20 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        metadata:
+          labels: { app.kubernetes.io/name: wartung-meldung, app.kubernetes.io/part-of: wind-park, team: wartung }
+        spec:
+          restartPolicy: Never
+          securityContext: { runAsNonRoot: true, runAsUser: 1001, seccompProfile: { type: RuntimeDefault } }
+          containers:
+            - name: report
+              image: quay.io/strimzi/kafka:${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - configMapRef: { name: wartung-config }
+              env:
+                - { name: KAFKA_HEAP_OPTS, value: "-Xmx128m" }
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  now=$(date +%s%3N)
+                  # a reading that is not a number is written as text
+                  case "$POWER_KW" in *[!0-9.]*) POWER_KW="\"$POWER_KW\"" ;; esac
+                  printf '%s|{"wind_turbine_id":"%s","wind_park_id":"%s","timestamp":%s,"wind_speed_ms":6.5,"power_kw":%s,"status":"MAINTENANCE"}\n' \
+                    "$TURBINE" "$TURBINE" "${TURBINE%-*}" "$now" "$POWER_KW" |
+                  /opt/kafka/bin/kafka-console-producer.sh \
+                    --bootstrap-server "$BOOTSTRAP_SERVERS" --topic "$TOPIC" \
+                    --reader-property parse.key=true --reader-property 'key.separator=|'
+              volumeMounts:
+                - { name: tmp, mountPath: /tmp }
+              resources:
+                requests: { cpu: 50m, memory: 192Mi }
+                limits: { memory: 384Mi }
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities: { drop: [ALL] }
+          volumes:
+            - { name: tmp, emptyDir: {} }
