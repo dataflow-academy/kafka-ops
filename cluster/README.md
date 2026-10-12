@@ -8,6 +8,6 @@ the Kafka cluster `my-cluster` from `kafka.yaml`:
 * one controller per node (`topologySpreadConstraints`), brokers spread by a *preferred* pod anti-affinity (a fourth broker still schedules), the node name is the broker's rack
 * listeners `plain` 9092, `tls` 9093, `external` (NodePort 31094 for the bootstrap, 31095-31097 per broker)
 * `min.insync.replicas=2`, replication factor 3; topic auto-creation stays at the Kafka default on purpose
-* metrics via the JMX Prometheus Exporter (`metrics-config.yaml`), Kafka Exporter for consumer groups
+* no metrics yet: `monitoring/prepare.sh` switches on the JMX Prometheus Exporter and the Kafka Exporter (a rolling restart)
 
 `reset.sh` deletes the namespace, the Strimzi CRDs and the cluster-wide roles, including all data.

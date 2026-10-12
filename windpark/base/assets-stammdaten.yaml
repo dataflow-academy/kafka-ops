@@ -1,0 +1,36 @@
+# Team Assets: publishes the master data (turbines and parks) as a full snapshot every 20 seconds.
+# The application itself is a job: it writes everything, waits for the acknowledgements and exits non-zero if
+# a delivery fails. The team runs it in a loop; the pod ends (and restarts) on the first failed round.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assets-stammdaten
+  namespace: windpark
+  labels: { app.kubernetes.io/name: assets-stammdaten, app.kubernetes.io/part-of: wind-park, team: assets }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: assets-stammdaten }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: assets-stammdaten, app.kubernetes.io/part-of: wind-park, team: assets }
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 1001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: producer
+          image: ${WIND_IMAGE_REGISTRY}/python/wind-masterdata-producer:${WIND_IMAGE_TAG}
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "while true; do wind-masterdata-producer || exit 1; sleep 20; done"]
+          envFrom:
+            - configMapRef: { name: assets-config }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { memory: 256Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+      volumes:
+        - { name: tmp, emptyDir: {} }
