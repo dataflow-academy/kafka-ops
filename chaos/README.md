@@ -9,7 +9,7 @@ and a script that undoes all of them.
 | File | What it does |
 |---|---|
 | `topics.yaml` | three experiment topics with TODOs the group fills in |
-| `start-producers.sh` | the three experiment producers in one terminal (`ACKS_TELEMETRY`, `ACKS_BILLING`, `ACKS_ALERTS`), logs in `~/telemetry.log` and friends |
+| `start-producers.sh` | the three experiment producers in one terminal (`ACKS_TELEMETRY`, `ACKS_BILLING`, `ACKS_ALERTS`), logs in the tools pod (`/tmp/telemetry.log` and friends) |
 | `produce.sh`, `count.sh` | one producer, and counting what was acknowledged and what is stored |
 | `place-alerts.sh` | put the topic `windpark_alerts` (fault F3, one replica) on the broker of node3 |
 | `break.sh [P1..P6]` | cause one failure and say nothing about which (without argument one of P4..P6 at random; P1..P3 only by name); creates `~/.chaos-started` |

@@ -1,38 +1,36 @@
 #!/usr/bin/env bash
 # Starts the three experiment producers (telemetry, billing, alerts) in one terminal. Every producer writes numbered
-# records, 20 per second, and logs each acknowledgment or error to ~/telemetry.log, ~/billing.log and ~/alerts.log
-# (count.sh reads these logs). Every 5 seconds this script prints how many were acknowledged and how many failed.
-# Stop everything with Ctrl+C; running it again stops leftovers first.
+# records, 20 per second, and logs each acknowledgment or error to /tmp/<name>.log inside the tools pod. Every
+# 5 seconds this script prints how many were acknowledged and how many failed. Stop everything with Ctrl+C.
 #
 #   ACKS_TELEMETRY=<0|1|all> ACKS_BILLING=<0|1|all> ACKS_ALERTS=<0|1|all> ./start-producers.sh
+#
+# The producers run as one process group inside the pod (xargs), because a process in the pod cannot be killed
+# from outside: Ctrl+C reaches the group through the terminal, nothing is left behind.
 . "$(dirname "$0")/lib.sh"
 declare -A acks=([telemetry]="${ACKS_TELEMETRY:-}" [billing]="${ACKS_BILLING:-}" [alerts]="${ACKS_ALERTS:-}")
 for k in telemetry billing alerts; do
   case "${acks[$k]}" in 0|1|all) ;; *) die "ACKS_${k^^} must be 0, 1 or all (got '${acks[$k]}').";; esac
+  [ "${acks[$k]}" = all ] && acks[$k]=-1
 done
 ensure_tools
-stop() {
-  kt sh -c 'for f in /tmp/chaos-producer-*.pid; do [ -f "$f" ] && kill "$(cat "$f")" 2>/dev/null; rm -f "$f"; done; true' >/dev/null 2>&1 || true
-}
-stop
-pids=()
-trap 'trap - INT TERM EXIT; kill "${pids[@]}" 2>/dev/null; stop; echo; echo "Producers stopped."; exit 0' INT TERM EXIT
-for k in telemetry billing alerts; do
-  a="${acks[$k]}"; [ "$a" = all ] && a=-1
-  : > "$HOME/$k.log"
-  kubectl -n "$NS" exec -i deploy/kafka-tools -- sh -c "echo \$\$ > /tmp/chaos-producer-$k.pid; exec kafka-verifiable-producer.sh \
-    --bootstrap-server $BOOTSTRAP --topic nordwind.chaos.private.$k.event --acks $a --throughput 20 --max-messages -1 --value-prefix 1" \
-    > "$HOME/$k.log" 2>&1 &
-  pids+=($!)
-done
-echo "Producers running: telemetry acks=${acks[telemetry]}, billing acks=${acks[billing]}, alerts acks=${acks[alerts]}. Ctrl+C stops them."
-while true; do
-  sleep 5
-  line="$(date +%T)"
-  for k in telemetry billing alerts; do
-    ok=$(grep -c '"name":"producer_send_success"' "$HOME/$k.log" || true)
-    err=$(grep -c '"name":"producer_send_error"' "$HOME/$k.log" || true)
-    line+="   $k: $ok ok, $err errors"
+job='k={}
+case $k in
+  telemetry) a='"${acks[telemetry]}"';; billing) a='"${acks[billing]}"';; alerts) a='"${acks[alerts]}"';;
+esac
+if [ "$k" = status ]; then
+  while sleep 5; do
+    line=$(date +%T)
+    for n in telemetry billing alerts; do
+      line="$line   $n: $(grep -c producer_send_success /tmp/$n.log) ok, $(grep -c producer_send_error /tmp/$n.log) errors"
+    done
+    echo "$line"
   done
-  echo "$line"
-done
+else
+  exec kafka-verifiable-producer.sh --bootstrap-server '"$BOOTSTRAP"' --topic nordwind.chaos.private.$k.event \
+    --acks $a --throughput 20 --max-messages -1 --value-prefix 1 > /tmp/$k.log 2>&1
+fi'
+for k in telemetry billing alerts; do : ; done
+echo "Producers running: telemetry acks=${ACKS_TELEMETRY}, billing acks=${ACKS_BILLING}, alerts acks=${ACKS_ALERTS}. Ctrl+C stops them."
+exec kubectl -n "$NS" exec -it deploy/kafka-tools -- sh -c \
+  "for k in telemetry billing alerts; do : > /tmp/\$k.log; done; printf 'telemetry\nbilling\nalerts\nstatus\n' | xargs -P4 -I{} sh -c '$(printf '%s' "$job" | sed "s/'/'\\\\''/g")'"
