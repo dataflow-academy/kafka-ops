@@ -12,7 +12,7 @@ Nothing here needs code changes: every application is configured through a Confi
 
 `requests/topics-skeleton.yaml` is the file participants fill in for the three topics of the onboarding requests.
 `prepare.sh` creates the three topics of the onboarding requests if they do not exist yet. Participants
-create them themselves in the onboarding lab and then run `kubectl apply -k windpark/`.
+create them themselves in the onboarding lab and then run `windpark/apply.sh` (it renders the manifests with Kustomize and applies them).
 
 | Team | Application | Reads / writes |
 |---|---|---|

@@ -18,6 +18,8 @@ kube_ready || die "kubectl cannot reach the cluster."
 kubectl -n "$KAFKA_NAMESPACE" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || die "Kafka cluster is missing. Run cluster/prepare.sh first."
 : "${WIND_IMAGE_REGISTRY:?WIND_IMAGE_REGISTRY is not set. The lab VM provides it in /etc/kafka-ops.env.}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# Deployments that crash-loop on a poison pill never become ready: do not wait four minutes for each.
+ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-240s}"
 MODE="${1:-training}"
 SUDO="${SUDO:-sudo}"
 NODES="${NODES:-1 2 3}"
@@ -51,6 +53,6 @@ done
 
 "$HERE/apply.sh" "$MODE"
 for d in scada-telemetry assets-stammdaten leitwarte prognose abrechnung alarme; do
-  kubectl -n windpark rollout status "deployment/$d" --timeout=240s || true
+  kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
 kubectl -n windpark get pods

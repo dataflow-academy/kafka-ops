@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Switches on the metrics of the Kafka cluster: the JMX Prometheus Exporter in every broker and controller
-# and the Kafka Exporter (consumer groups). Strimzi rolls the whole cluster once (about 4 minutes).
+# and the Kafka Exporter (consumer groups). Strimzi rolls the whole cluster once (five to six minutes).
 # Nothing happens if they are on already. The monitoring lab does the same by hand in its cluster file.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
