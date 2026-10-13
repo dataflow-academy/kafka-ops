@@ -14,14 +14,10 @@ export KAFKA_NAMESPACE KAFKA_CLUSTER
 TEST_WRAPPER="${NODE_SSH:-}"
 NODE_SSH="${NODE_SSH:-ssh}"
 
-# The scripts run on node1. `on node1 ...` then runs locally; the other nodes are reached with ssh. A command that
-# uses sudo may ask for the password, so it needs a terminal: `on_sudo` uses `ssh -t` (node1 locally, where sudo asks
-# in the terminal the script runs in). Both take the node and one command string.
+# The scripts run on node1. `on node1 ...` then runs locally; the other nodes are reached with ssh. Both take the
+# node and one command string. sudo needs no password on the lab VMs, so no terminal is required.
 on() {
   if [ -n "$TEST_WRAPPER" ]; then $NODE_SSH "$1" "$2"; elif [ "$1" = node1 ]; then bash -c "$2"; else ssh "$1" "$2"; fi
-}
-on_sudo() {
-  if [ -n "$TEST_WRAPPER" ]; then $NODE_SSH "$1" "$2"; elif [ "$1" = node1 ]; then bash -c "$2"; else ssh -t "$1" "$2"; fi
 }
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 

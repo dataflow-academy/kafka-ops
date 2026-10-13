@@ -8,8 +8,6 @@
 
 NODES="${NODES:-1 2 3}"
 SUDO="${SUDO:-sudo}"
-# Ask for the password once, here, before anything is captured. (Tests with a wrapper bring their own sudo.)
-[ -n "$TEST_WRAPPER" ] || $SUDO -v
 
 # Private address of node N: the address on the interface that carries the
 # Hetzner private network route.
@@ -26,20 +24,20 @@ log "k3s ${K3S_VERSION}: server node1 ($SERVER_IP, $IFACE)"
 if [ "$(installed_version 1)" != "$K3S_VERSION" ]; then
   # Traefik and the service load balancer are not needed: everything is
   # reached through NodePorts, and the memory is better spent on Kafka.
-  on_sudo node1 "curl -sfL https://get.k3s.io | $SUDO env INSTALL_K3S_VERSION='$K3S_VERSION' sh -s - server \
+  on node1 "curl -sfL https://get.k3s.io | $SUDO env INSTALL_K3S_VERSION='$K3S_VERSION' sh -s - server \
     --node-ip $SERVER_IP --advertise-address $SERVER_IP --flannel-iface $IFACE \
     --disable traefik --disable servicelb --write-kubeconfig-mode 644"
 fi
 wait_for "k3s server" 120 on node1 'kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes'
 
-TOKEN="$(on_sudo node1 "$SUDO cat /var/lib/rancher/k3s/server/node-token")"
+TOKEN="$(on node1 "$SUDO cat /var/lib/rancher/k3s/server/node-token")"
 
 for n in $NODES; do
   [ "$n" = 1 ] && continue
   read -r NODE_IP IFACE_N < <(node_ip "$n" | paste -sd' ')
   log "k3s agent node$n ($NODE_IP)"
   if [ "$(installed_version "$n")" != "$K3S_VERSION" ]; then
-    on_sudo "node$n" "curl -sfL https://get.k3s.io | $SUDO env INSTALL_K3S_VERSION='$K3S_VERSION' \
+    on "node$n" "curl -sfL https://get.k3s.io | $SUDO env INSTALL_K3S_VERSION='$K3S_VERSION' \
       K3S_URL='https://$SERVER_IP:6443' K3S_TOKEN='$TOKEN' sh -s - agent \
       --node-ip $NODE_IP --flannel-iface $IFACE_N"
   fi

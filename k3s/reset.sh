@@ -5,11 +5,10 @@
 # the k3s uninstall script deletes. Without it the next installation cannot pull the images, so it is kept aside and put back.
 . "$(dirname "$0")/../lib/common.sh"
 SUDO="${SUDO:-sudo}"
-[ -n "$TEST_WRAPPER" ] || $SUDO -v   # the password once, before the nodes
 KEEP=/tmp/registries.yaml.keep
 REG=/etc/rancher/k3s/registries.yaml
 uninstall() {   # uninstall <node> <script>
-  on_sudo "$1" "[ -f $REG ] && $SUDO cp -p $REG $KEEP; \
+  on "$1" "[ -f $REG ] && $SUDO cp -p $REG $KEEP; \
     [ -x $2 ] && $SUDO $2; \
     [ -f $KEEP ] && $SUDO mkdir -p /etc/rancher/k3s && $SUDO mv $KEEP $REG; true"
 }
