@@ -1,6 +1,6 @@
 # Skeleton for the cluster design lab. `cluster/skeleton.sh` writes it to ~/my-cluster.yaml with the versions
-# from versions.env filled in; then replace every TODO and `kubectl apply -f` the file.
-# As it stands the file is rejected: a TODO is not a number.
+# from versions.env filled in; then replace every placeholder (the word in capitals) and `kubectl apply -f` the file.
+# As it stands the file is rejected: a placeholder is not a number.
 #
 # Fixed for the next days (do not rename): the cluster is called `my-cluster`, the node pools
 # `controller` and `broker`, everything lives in the namespace `kafka`.

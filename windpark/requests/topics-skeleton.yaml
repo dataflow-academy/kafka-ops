@@ -1,4 +1,4 @@
-# The topics of the three onboarding requests. Replace every TODO with your decision, then apply
+# The topics of the three onboarding requests. Replace every placeholder (the word in capitals) with your decision, then apply
 # the file. As it stands, Kubernetes or the topic operator rejects it.
 #
 # The names follow the convention  nordwind.<domain>.<public|private>.<entity>.<event|state|command>
