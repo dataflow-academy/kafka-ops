@@ -12,5 +12,5 @@ kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic --ignore-not-found \
 # Topics that only exist through auto-creation (for example the typo topic of fault F1).
 for t in nordwind.scada.public.turbine-telemetery.event windpark_alerts; do
   kubectl -n "$KAFKA_NAMESPACE" exec "${KAFKA_CLUSTER}-broker-0" -- /opt/kafka/bin/kafka-topics.sh \
-    --bootstrap-server localhost:9092 --delete --topic "$t" 2>/dev/null || true
+    --bootstrap-server localhost:9092 --delete --if-exists --topic "$t" >/dev/null 2>&1 || true
 done
