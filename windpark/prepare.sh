@@ -55,4 +55,16 @@ done
 for d in scada-telemetry assets-stammdaten leitwarte prognose abrechnung alarme; do
   kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
+# A consumer stuck on the old poison pill never becomes ready; fixes/ ships with the day 2 labs.
+if [ "$MODE" = healthy ] && [ -x "$HERE/fixes/skip-poison-pill.sh" ]; then
+  consumers_ready() {
+    local d
+    for d in leitwarte prognose abrechnung; do
+      [ "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.status.readyReplicas}')" = "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.spec.replicas}')" ] || return 1
+    done
+  }
+  # A crash-looping pod is briefly Running between two crashes: ready has to hold for 20 seconds.
+  for _ in $(seq 24); do consumers_ready && { sleep 20; consumers_ready && break; }; sleep 5; done
+  consumers_ready || { log "A consumer is not ready: moving the groups behind the poison pill"; "$HERE/fixes/skip-poison-pill.sh"; }
+fi
 kubectl -n windpark get pods
