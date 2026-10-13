@@ -1,6 +1,6 @@
 # Governance package: Nordwind platform team
 
-Fill in every TODO. This is what you take home.
+Replace every placeholder (the word in capitals) with your answer. This is what you take home.
 
 ## 1. Naming convention
 
