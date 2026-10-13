@@ -70,13 +70,6 @@ spec:
   jvmOptions:
     "-Xms": 1g
     "-Xmx": 1g
-  template:
-    pod:
-      # TODO: spread the brokers over the nodes with a podAntiAffinity (the controllers use a
-      # topologySpreadConstraint). Is `required` or `preferred` the better choice? Think about what a
-      # fourth broker needs on day three, and about a pod that must not share its node when a node is gone.
-      # affinity:
-      #   podAntiAffinity: ...
 ---
 apiVersion: kafka.strimzi.io/v1
 kind: Kafka
