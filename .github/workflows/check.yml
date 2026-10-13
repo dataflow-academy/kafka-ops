@@ -1,0 +1,21 @@
+name: check
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  scripts-and-manifests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        run: shellcheck -x lib/common.sh */*.sh
+      - name: Kustomize overlays render
+        run: |
+          for overlay in healthy training; do
+            kubectl kustomize workload/overlays/$overlay > /dev/null
+          done
+      - name: Only versions.env pins versions
+        run: |
+          # Image tags and release numbers belong in versions.env; manifests use ${VARIABLES}.
+          ! grep -rnE 'image: .*:[0-9v][0-9.]+' --include='*.yaml' . 
