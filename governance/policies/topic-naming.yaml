@@ -3,6 +3,10 @@
 #
 # The name of the topic is NOT always metadata.name: a KafkaTopic may carry the real name in spec.topicName (needed
 # for names Kubernetes does not allow, like underscores). Check what Kafka will really see.
+#
+# Topics that existed before the convention are grandfathered: a KafkaTopic with the label
+# governance.nordwind/grandfathered: "true" is not checked. Renaming a topic in production is expensive (offsets,
+# every client), so the platform team puts the label on the existing topics once. Everything else must match.
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
@@ -20,6 +24,10 @@ spec:
   matchConditions:
     - name: not-being-deleted
       expression: "!has(object.metadata.deletionTimestamp)"
+    - name: not-grandfathered
+      expression: >-
+        !(has(object.metadata.labels) && 'governance.nordwind/grandfathered' in object.metadata.labels &&
+        object.metadata.labels['governance.nordwind/grandfathered'] == 'true')
   variables:
     - name: topicName
       expression: "TODO"

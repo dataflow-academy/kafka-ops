@@ -5,7 +5,7 @@
 . "$(dirname "$0")/../../lib/common.sh"
 need kubectl
 NS="$KAFKA_NAMESPACE"
-TOPIC=nordwind.scada.public.turbine-telemetry.event
+TOPIC=telemetry
 declare -A replicas=([leitwarte]=2 [prognose]=1 [abrechnung]=1)
 
 for d in "${!replicas[@]}"; do kubectl -n windpark scale "deployment/$d" --replicas=0 >/dev/null; done

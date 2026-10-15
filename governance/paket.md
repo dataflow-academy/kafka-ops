@@ -8,6 +8,11 @@ Pattern: `nordwind.<domain>.<public|private>.<entity>.<event|state|command>`
 
 Enforced by: TODO (what rejects a wrongly named topic, and where does it look for the name?)
 
+Topics that exist before the convention are grandfathered: they carry the label `governance.nordwind/grandfathered: "true"`
+and the policy skips them. Only the platform team may set the label; we ensure that by: TODO (or: we do not ensure it, and the risk is ...)
+
+The lesson: TODO (when does a convention have to come, and what does it cost if it comes later?)
+
 ## 2. Defaults at the broker
 
 | Setting | Value | Why |

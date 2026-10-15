@@ -6,5 +6,5 @@ Material for the storage lab: what is on the disk of a broker, when retention de
     ./reset.sh      # delete the experiment topics, undo the tuning of the master data topic
 
 `retention-demo.yaml` is the topic of the retention experiment. The compaction experiment uses the master data topic
-of the wind park (`nordwind.assets.public.turbine-registry.state`): its team writes a full snapshot every 20 seconds,
+of the wind park (`turbine-registry`): its team writes a full snapshot every 20 seconds,
 so there are many records per key.

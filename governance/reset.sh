@@ -7,6 +7,12 @@ NS="$KAFKA_NAMESPACE"
 kubectl delete validatingadmissionpolicybinding kafkatopic-naming kafkatopic-limits --ignore-not-found
 kubectl delete validatingadmissionpolicy kafkatopic-naming kafkatopic-limits --ignore-not-found
 kubectl -n "$NS" delete kafkatopic -l training/experiment=governance --ignore-not-found
+# The grandfathering label is part of the lab: the existing topics lose it again. A policy that was just deleted needs a
+# moment to stop rejecting the topics (they no longer follow the convention without the label), hence the retries.
+for _ in $(seq 20); do
+  kubectl -n "$NS" label kafkatopic --all governance.nordwind/grandfathered- >/dev/null 2>&1 && break
+  sleep 3
+done
 rm -f "$HOME/.alerts-copied"
 kubectl -n "$NS" exec deploy/kafka-tools -- kafka-configs.sh --bootstrap-server "my-cluster-kafka-bootstrap:9092" \
   --alter --entity-type clients --entity-name wartung --delete-config producer_byte_rate >/dev/null 2>&1 || true
