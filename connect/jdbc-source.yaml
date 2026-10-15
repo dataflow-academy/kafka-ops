@@ -1,0 +1,21 @@
+# The solution: polling with an incrementing id.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnector
+metadata:
+  name: work-orders
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: connect
+spec:
+  class: io.confluent.connect.jdbc.JdbcSourceConnector
+  tasksMax: 1
+  config:
+    connection.url: jdbc:postgresql://wartung-db:5432/wartung
+    connection.user: wartung
+    connection.password: wartung
+    # With `query` the value of topic.prefix is the complete topic name.
+    query: SELECT * FROM work_orders
+    topic.prefix: nordwind.maintenance.private.work-orders.state
+    poll.interval.ms: 5000
+    mode: incrementing
+    incrementing.column.name: id

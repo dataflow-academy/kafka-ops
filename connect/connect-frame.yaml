@@ -1,0 +1,35 @@
+# Frame for the Connect lab. `skeleton.sh` writes it to ~/connect.yaml with the version filled in.
+# Fill in every TODO, then `kubectl apply -f ~/connect.yaml`. The build does not succeed on the first try.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnect
+metadata:
+  name: connect
+  namespace: kafka
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: ${KAFKA_VERSION}
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  groupId: nordwind-connect
+  offsetStorageTopic: nordwind-connect-offsets
+  configStorageTopic: nordwind-connect-configs
+  statusStorageTopic: nordwind-connect-status
+  config:
+    offset.storage.replication.factor: 3
+    config.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+  build:
+    output:
+      type: docker
+      image: registry.registry.svc:5000/nordwind/connect:1
+    plugins:
+      - name: jdbc
+        artifacts:
+          - type: zip
+            url: TODO       # the Confluent JDBC connector, version 10.9.0 (Confluent Hub)
+            sha512sum: TODO # pinned: the build fails if the download differs
