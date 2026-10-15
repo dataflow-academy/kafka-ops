@@ -5,11 +5,10 @@
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind-chaos-telemetry
+  name: chaos-telemetry
   namespace: kafka
   labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
 spec:
-  topicName: nordwind.chaos.private.telemetry.event
   partitions: 1
   replicas: 3
   config:
@@ -19,11 +18,10 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind-chaos-billing
+  name: chaos-billing
   namespace: kafka
   labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
 spec:
-  topicName: nordwind.chaos.private.billing.event
   partitions: 1
   replicas: 3
   config:
@@ -33,11 +31,10 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind-chaos-alerts
+  name: chaos-alerts
   namespace: kafka
   labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
 spec:
-  topicName: nordwind.chaos.private.alerts.event
   partitions: 1
   replicas: 3
   config:

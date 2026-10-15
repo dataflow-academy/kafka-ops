@@ -8,7 +8,7 @@ and a script that undoes all of them.
 
 | File | What it does |
 |---|---|
-| `topics.yaml` | three experiment topics with TODOs the group fills in |
+| `topics.yaml` | three experiment topics with TODOs the group fills in (free names, no convention; while the naming policy of the governance lab is active they are rejected: run `governance/reset.sh` first) |
 | `start-producers.sh` | the three experiment producers in one terminal (`ACKS_TELEMETRY`, `ACKS_BILLING`, `ACKS_ALERTS`), logs in the tools pod (`/tmp/telemetry.log` and friends) |
 | `produce.sh`, `count.sh` | one producer, and counting what was acknowledged and what is stored |
 | `place-alerts.sh` | put the topic `windpark_alerts` (fault F3, one replica) on the broker of node3 |

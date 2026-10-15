@@ -27,7 +27,7 @@ if [ "$k" = status ]; then
     echo "$line"
   done
 else
-  exec kafka-verifiable-producer.sh --bootstrap-server '"$BOOTSTRAP"' --topic nordwind.chaos.private.$k.event \
+  exec kafka-verifiable-producer.sh --bootstrap-server '"$BOOTSTRAP"' --topic chaos-$k \
     --acks $a --throughput 20 --max-messages -1 --value-prefix 1 > /tmp/$k.log 2>&1
 fi'
 for k in telemetry billing alerts; do : ; done

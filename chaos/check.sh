@@ -27,13 +27,16 @@ if out=$(timeout 40 kubectl -n "$NS" exec deploy/kafka-tools -- kafka-topics.sh 
   c=$(grep -c Topic <<<"$out" || true); [ "$c" = 0 ] || bad "$c unavailable partitions"
 else bad "cannot ask Kafka for unavailable partitions"; fi
 
-probe=check-probe
+probe=chaos-check-probe
 kubectl -n "$NS" delete kafkatopic "$probe" --ignore-not-found >/dev/null 2>&1
+# With the naming policy of the governance lab in place the probe is created grandfathered (see windpark/prepare.sh).
+extra=""
+kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1 && extra=', governance.nordwind/grandfathered: "true"'
 kubectl apply -f - >/dev/null <<YAML
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
-metadata: { name: $probe, namespace: $NS, labels: { strimzi.io/cluster: $KAFKA_CLUSTER } }
-spec: { topicName: nordwind.chaos.private.check-probe.event, partitions: 1, replicas: 3 }
+metadata: { name: $probe, namespace: $NS, labels: { strimzi.io/cluster: $KAFKA_CLUSTER$extra } }
+spec: { partitions: 1, replicas: 3 }
 YAML
 kubectl -n "$NS" wait kafkatopic/$probe --for=condition=Ready --timeout=60s >/dev/null 2>&1 || bad "a new KafkaTopic does not become Ready"
 kubectl -n "$NS" delete kafkatopic "$probe" --wait=false >/dev/null 2>&1
