@@ -1,0 +1,14 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-demo-grandfathered
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+    governance.nordwind/grandfathered: "true"
+spec:
+  topicName: demo_before_the_convention
+  partitions: 6
+  replicas: 3
+  config:
+    min.insync.replicas: "2"

@@ -1,0 +1,8 @@
+# The wind park after the lab "Helping the dev teams": F1, F2, F4 and F5 are repaired. F3 (the topic of team
+# Alarme) stays until the governance lab.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+components:
+  - ../../faults/f3-alerts-topic
