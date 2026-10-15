@@ -22,7 +22,7 @@ spec:
     - source:
         alias: primary
         bootstrapServers: my-cluster-kafka-bootstrap.kafka.svc:9092
-      topicsPattern: "nordwind\\..*"
+      topicsPattern: "telemetry|turbine-registry|park-registry|nordwind\\..*"
       groupsPattern: "leitwarte|prognose|abrechnung"
       sourceConnector:
         tasksMax: 2
