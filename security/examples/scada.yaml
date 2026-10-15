@@ -15,6 +15,6 @@ spec:
     acls:
       - resource:
           type: topic
-          name: nordwind.scada.public.turbine-telemetry.event
+          name: telemetry
           patternType: literal
         operations: [Write, Describe]

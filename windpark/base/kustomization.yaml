@@ -20,7 +20,7 @@ configMapGenerator:
     namespace: windpark
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
-      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - TOPIC=telemetry
       # 50 turbines report per tick: 1000 ms = 50 records/s, 250 ms = 200 records/s, 100 ms = 500 records/s.
       - TICK_INTERVAL_MS=250
       # KAFKA_<NAME> becomes the client config <name> (underscore = dot).
@@ -32,21 +32,21 @@ configMapGenerator:
     namespace: windpark
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
-      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - TOPIC=telemetry
       - GROUP_ID=leitwarte
       - JAVA_OPTS=-XX:MaxRAMPercentage=70
   - name: prognose-config
     namespace: windpark
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
-      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - TOPIC=telemetry
       - GROUP_ID=prognose
       - JAVA_OPTS=-XX:MaxRAMPercentage=70
   - name: abrechnung-config
     namespace: windpark
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
-      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - TOPIC=telemetry
       - GROUP_ID=abrechnung
       # Older setting of the team: the classic group protocol (the clients default is the new one).
       - KAFKA_GROUP_PROTOCOL=classic
@@ -55,8 +55,8 @@ configMapGenerator:
     namespace: windpark
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
-      - TURBINE_REGISTRY_TOPIC=nordwind.assets.public.turbine-registry.state
-      - PARK_REGISTRY_TOPIC=nordwind.assets.public.park-registry.state
+      - TURBINE_REGISTRY_TOPIC=turbine-registry
+      - PARK_REGISTRY_TOPIC=park-registry
       # The team does not want a round to hang: give up after 10 seconds.
       - KAFKA_REQUEST_TIMEOUT_MS=5000
       - KAFKA_DELIVERY_TIMEOUT_MS=10000
@@ -64,7 +64,7 @@ configMapGenerator:
     namespace: windpark
     literals:
       - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
-      - TOPIC=nordwind.scada.public.turbine-telemetry.event
+      - TOPIC=telemetry
       - TURBINE=alpha-ventus-07
       - POWER_KW=0.0
   - name: alarme-config

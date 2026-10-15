@@ -1,11 +1,9 @@
-# The topics of the three onboarding requests. Replace every TODO with your decision, then apply
+# The topics of the three onboarding requests. Replace every placeholder (the word in capitals) with your decision, then apply
 # the file. As it stands, Kubernetes or the topic operator rejects it.
-#
-# The names follow the convention  nordwind.<domain>.<public|private>.<entity>.<event|state|command>
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind.scada.public.turbine-telemetry.event
+  name: telemetry
   namespace: kafka
   labels:
     strimzi.io/cluster: my-cluster
@@ -19,7 +17,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind.assets.public.turbine-registry.state
+  name: turbine-registry
   namespace: kafka
   labels:
     strimzi.io/cluster: my-cluster
@@ -33,7 +31,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind.assets.public.park-registry.state
+  name: park-registry
   namespace: kafka
   labels:
     strimzi.io/cluster: my-cluster
