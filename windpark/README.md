@@ -11,17 +11,17 @@ Nothing here needs code changes: every application is configured through a Confi
     ./reset.sh                 # remove everything (the cluster stays)
 
 `requests/topics-skeleton.yaml` is the file participants fill in for the three topics of the onboarding requests.
-`prepare.sh` creates the three topics of the onboarding requests if they do not exist yet. Participants
+`prepare.sh` creates the three topics of the onboarding requests if they do not exist yet (with the grandfathering label of the governance lab when its naming policy is active). Participants
 create them themselves in the onboarding lab and then run `windpark/apply.sh` (it renders the manifests with Kustomize and applies them).
 
 | Team | Application | Reads / writes |
 |---|---|---|
-| SCADA | `scada-telemetry`, Deployment | writes `nordwind.scada.public.turbine-telemetry.event` |
-| Assets | `assets-stammdaten`, Deployment (a snapshot every 20 seconds, the pod ends on the first failed delivery) | writes `nordwind.assets.public.turbine-registry.state` and `...park-registry.state` (compacted) |
+| SCADA | `scada-telemetry`, Deployment | writes `telemetry` |
+| Assets | `assets-stammdaten`, Deployment (a snapshot every 20 seconds, the pod ends on the first failed delivery) | writes `turbine-registry` and `park-registry` (compacted) |
 | Leitwarte | `leitwarte`, 2 replicas | reads telemetry, group `leitwarte` |
 | Abrechnung | `abrechnung` | reads telemetry, group `abrechnung` (classic group protocol) |
 | Prognose | `prognose` | reads telemetry, group `prognose` |
-| Wartung | `wartung-meldung`, CronJob every 20 minutes | writes one record into the telemetry topic |
+| Wartung | `wartung-meldung`, CronJob every 20 minutes | writes one record into `telemetry` (they asked for a topic of that name too, SCADA got it first, and nobody told them the counter-proposal; fault F2) |
 | Alarme | `alarme` | writes an alert every 10 seconds |
 
 ## The faults
@@ -32,7 +32,7 @@ a repair is a copy of that file under `fixes/<name>/` without the repaired fault
 
 | | Fault | Mechanics |
 |---|---|---|
-| F1 | Abrechnung reads a topic with a typo | `TOPIC=...turbine-telemetery.event`; topic auto-creation makes it an empty topic |
+| F1 | Abrechnung reads a topic with a typo | `TOPIC=telemetery`; topic auto-creation makes it an empty topic |
 | F2 | Wartung writes `"n/a"` into `power_kw` | every consumer that reads the record stops (poison pill); a new one arrives every 20 minutes |
 | F3 | Alarme built its own topic | `windpark_alerts`, one partition, one replica, `min.insync.replicas=1` |
 | F4 | Prognose falls behind | CPU limit 25m, it needs about 30m at 200 records/s |

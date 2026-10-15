@@ -46,9 +46,15 @@ fi
 
 log "Topics of the onboarding requests (${TOPIC_VARIANT})"
 # Only topics that do not exist yet: never overwrite what a group has created.
+# These topics exist before the naming convention. Once the governance lab has put its naming policy in place, they are
+# created grandfathered (the label the lab sets by hand), otherwise the policy would reject them.
+label=()
+kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1 && label=(governance.nordwind/grandfathered=true)
 for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry}.yaml; do
   name="$(sed -n 's/^  name: //p' "$f")"
-  if kubectl -n "$KAFKA_NAMESPACE" get kafkatopic "$name" >/dev/null 2>&1; then echo "exists: $name"; else kubectl apply -f "$f"; fi
+  if kubectl -n "$KAFKA_NAMESPACE" get kafkatopic "$name" >/dev/null 2>&1; then echo "exists: $name"
+  elif [ ${#label[@]} -gt 0 ]; then kubectl label --local -f "$f" "${label[@]}" -o yaml | kubectl apply -f -
+  else kubectl apply -f "$f"; fi
 done
 
 "$HERE/apply.sh" "$MODE"
