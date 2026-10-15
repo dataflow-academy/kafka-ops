@@ -1,4 +1,4 @@
-# F1: Abrechnung reads a topic with a typo (turbine-telemetery). Auto-create makes it an empty topic.
+# F1: Abrechnung reads a topic with a typo (telemetery). Auto-create makes it an empty topic.
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 configMapGenerator:
@@ -6,4 +6,4 @@ configMapGenerator:
     namespace: windpark
     behavior: merge
     literals:
-      - TOPIC=nordwind.scada.public.turbine-telemetery.event
+      - TOPIC=telemetery

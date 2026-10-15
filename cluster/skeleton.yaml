@@ -1,6 +1,6 @@
 # Skeleton for the cluster design lab. `cluster/skeleton.sh` writes it to ~/my-cluster.yaml with the versions
-# from versions.env filled in; then replace every TODO and `kubectl apply -f` the file.
-# As it stands the file is rejected: a TODO is not a number.
+# from versions.env filled in; then replace every placeholder (the word in capitals) and `kubectl apply -f` the file.
+# As it stands the file is rejected: a placeholder is not a number.
 #
 # Fixed for the next days (do not rename): the cluster is called `my-cluster`, the node pools
 # `controller` and `broker`, everything lives in the namespace `kafka`.
@@ -70,13 +70,6 @@ spec:
   jvmOptions:
     "-Xms": 1g
     "-Xmx": 1g
-  template:
-    pod:
-      # TODO: spread the brokers over the nodes with a podAntiAffinity (the controllers use a
-      # topologySpreadConstraint). Is `required` or `preferred` the better choice? Think about what a
-      # fourth broker needs on day three, and about a pod that must not share its node when a node is gone.
-      # affinity:
-      #   podAntiAffinity: ...
 ---
 apiVersion: kafka.strimzi.io/v1
 kind: Kafka

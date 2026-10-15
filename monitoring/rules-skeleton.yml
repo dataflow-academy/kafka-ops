@@ -2,7 +2,7 @@
 #   for:       how long must the condition hold before the alert fires? (a value like 5m)
 #   severity:  page   = wake somebody up
 #              ticket = look at it during working hours
-# Replace every TODO. As it stands, Prometheus refuses to load this file.
+# Replace every placeholder (the word in capitals). As it stands, Prometheus refuses to load this file.
 groups:
   - name: kafka-health
     rules:

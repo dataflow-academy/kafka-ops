@@ -46,13 +46,31 @@ fi
 
 log "Topics of the onboarding requests (${TOPIC_VARIANT})"
 # Only topics that do not exist yet: never overwrite what a group has created.
+# These topics exist before the naming convention. Once the governance lab has put its naming policy in place, they are
+# created grandfathered (the label the lab sets by hand), otherwise the policy would reject them.
+label=()
+kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1 && label=(governance.nordwind/grandfathered=true)
 for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry}.yaml; do
   name="$(sed -n 's/^  name: //p' "$f")"
-  if kubectl -n "$KAFKA_NAMESPACE" get kafkatopic "$name" >/dev/null 2>&1; then echo "exists: $name"; else kubectl apply -f "$f"; fi
+  if kubectl -n "$KAFKA_NAMESPACE" get kafkatopic "$name" >/dev/null 2>&1; then echo "exists: $name"
+  elif [ ${#label[@]} -gt 0 ]; then kubectl label --local -f "$f" "${label[@]}" -o yaml | kubectl apply -f -
+  else kubectl apply -f "$f"; fi
 done
 
 "$HERE/apply.sh" "$MODE"
 for d in scada-telemetry assets-stammdaten leitwarte prognose abrechnung alarme; do
   kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
+# A consumer stuck on the old poison pill never becomes ready; fixes/ ships with the day 2 labs.
+if [ "$MODE" = healthy ] && [ -x "$HERE/fixes/skip-poison-pill.sh" ]; then
+  consumers_ready() {
+    local d
+    for d in leitwarte prognose abrechnung; do
+      [ "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.status.readyReplicas}')" = "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.spec.replicas}')" ] || return 1
+    done
+  }
+  # A crash-looping pod is briefly Running between two crashes: ready has to hold for 20 seconds.
+  for _ in $(seq 24); do consumers_ready && { sleep 20; consumers_ready && break; }; sleep 5; done
+  consumers_ready || { log "A consumer is not ready: moving the groups behind the poison pill"; "$HERE/fixes/skip-poison-pill.sh"; }
+fi
 kubectl -n windpark get pods
