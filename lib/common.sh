@@ -21,8 +21,17 @@ need() { command -v "$1" >/dev/null || die "$1 is missing."; }
 
 # Replaces ${VAR} placeholders with the values from versions.env and nothing
 # else, so a literal $1 in a manifest (Prometheus relabeling) survives.
-VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ') \${WIND_IMAGE_REGISTRY}"
-render() { set -a; . "$ROOT/versions.env"; [ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env; set +a; envsubst "$VERSION_VARS" < "$1"; }
+VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ' -) \${WIND_IMAGE_REGISTRY}"
+render() {
+  set -a
+  # shellcheck source=../versions.env
+  . "$ROOT/versions.env"
+  # The optional VM-local registry settings are not part of the repository.
+  # shellcheck source=/dev/null
+  [ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env
+  set +a
+  envsubst "$VERSION_VARS" < "$1"
+}
 apply_tpl() { render "$1" | kubectl apply "${@:2}" -f -; }
 
 # Polls until a command succeeds. wait_for "what" seconds cmd...

@@ -25,12 +25,8 @@ SUDO="${SUDO:-sudo}"
 NODES="${NODES:-1 2 3}"
 TOPIC_VARIANT=sensible
 case "$MODE" in
-  training) DIR="$HERE" ;;
-  as-requested) DIR="$HERE"; TOPIC_VARIANT=as-requested ;;
-  healthy) DIR="$HERE/base" ;;
-  *) DIR="$HERE/$MODE" ;;
+  as-requested) TOPIC_VARIANT=as-requested ;;
 esac
-
 if [ -n "${STAGE_IMAGES_FROM:-}" ]; then
   need docker
   for spec in java/wind-turbine-producer-json:java/producer-json java/wind-turbine-consumer-json:java/consumer-json \

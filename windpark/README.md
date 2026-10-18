@@ -7,12 +7,22 @@ Nothing here needs code changes: every application is configured through a Confi
     ./prepare.sh               # the wind park as participants meet it: faults F1-F5 built in
     ./prepare.sh as-requested  # same, plus the topics approved exactly as requested (fault F6)
     ./prepare.sh healthy       # no faults
-    ./apply.sh                 # only the applications (the onboarding lab; the topics are created by the participants)
+    ./render.sh > ~/windpark.yaml  # prepare the editable participant manifests
+    kubectl apply -f ~/windpark.yaml  # deploy them; participants create the onboarding topics themselves
+    ./apply.sh                 # apply directly (used by prepare.sh for catch-up states)
     ./reset.sh                 # remove everything (the cluster stays)
 
 `requests/topics-skeleton.yaml` is the file participants fill in for the three topics of the onboarding requests.
 `prepare.sh` creates the three topics of the onboarding requests if they do not exist yet (with the grandfathering label of the governance lab when its naming policy is active). Participants
-create them themselves in the onboarding lab and then run `windpark/apply.sh` (it renders the manifests with Kustomize and applies them).
+create them themselves in the onboarding lab. They render `~/windpark.yaml` once with `windpark/render.sh`,
+inspect it and run `kubectl apply -f ~/windpark.yaml`. Rendering only substitutes the pinned image versions
+and registry address; it does not contact the cluster. All resources carry their own namespace.
+
+Keep this file for the repairs in M6. Edit the affected ConfigMap or Deployment in the file, then apply
+it again. Editing ConfigMap data does not change its generated name and does not restart a Deployment:
+restart only the affected Deployment explicitly with `kubectl rollout restart`. A CronJob uses the changed
+ConfigMap on its next Job; existing Jobs keep their original environment. Do not render the file again
+after repairing it, as that would replace your edits with the initial faulty state.
 
 | Team | Application | Reads / writes |
 |---|---|---|
@@ -27,8 +37,8 @@ create them themselves in the onboarding lab and then run `windpark/apply.sh` (i
 ## The faults
 
 Each fault is a Kustomize component in `faults/`. The `kustomization.yaml` in this folder lists F1 to F5;
-a repair is a copy of that file under `fixes/<name>/` without the repaired fault (`resources: [../../base]`,
-`components: [../../faults/...]` for the rest) and `./prepare.sh fixes/<name>`.
+these components prepare the exercise, not its participant repair path. Participants edit the rendered
+YAML and apply it themselves. Overlays under `fixes/` are catch-up states for skipped labs.
 
 | | Fault | Mechanics |
 |---|---|---|

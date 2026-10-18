@@ -1,0 +1,2 @@
+# Resolve script-relative helper files while following their contents.
+source-path=SCRIPTDIR

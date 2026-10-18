@@ -7,19 +7,15 @@
 #   ./apply.sh healthy       no faults
 #   ./apply.sh <dir>         any kustomization below windpark/ (for example fixes/<name>)
 . "$(dirname "$0")/../lib/common.sh"
-need kubectl; need envsubst
+need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
 : "${WIND_IMAGE_REGISTRY:?WIND_IMAGE_REGISTRY is not set. The lab VM provides it in /etc/kafka-ops.env.}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 MODE="${1:-training}"
-case "$MODE" in
-  training|as-requested) DIR="$HERE" ;;
-  healthy) DIR="$HERE/base" ;;
-  *) DIR="$HERE/$MODE" ;;
-esac
+
 
 log "Wind park (${MODE})"
-manifests="$(kubectl kustomize "$DIR" | render /dev/stdin)"
+manifests="$("$HERE/render.sh" "$MODE")"
 # The applications and their ConfigMaps live in `windpark`, the team-owned KafkaTopics in `kafka`.
 # Prune removes what a fix took out of the kustomization.
 split_docs() { python3 -c '

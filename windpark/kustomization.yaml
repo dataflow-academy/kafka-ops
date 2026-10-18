@@ -1,7 +1,7 @@
 # The wind park as participants meet it: the healthy base plus faults F1-F5.
 # (F6 is not here: it comes from the decisions of the group in the onboarding lab, see README.)
 #
-# A lab that repairs a fault removes its line below, in a copy of this file under fixes/.
+# Kustomize builds the initial states. Participants edit the plain YAML from render.sh.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
