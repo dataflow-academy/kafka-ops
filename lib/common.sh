@@ -10,8 +10,17 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 [ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env
 export KAFKA_NAMESPACE KAFKA_CLUSTER
 
-# Lab VMs are reached with `ssh node1..3`. Tests override NODE_SSH.
+# Lab VMs are reached with `ssh node1..3`. Tests from outside the VMs set NODE_SSH to a wrapper that reaches every node.
+TEST_WRAPPER="${NODE_SSH:-}"
 NODE_SSH="${NODE_SSH:-ssh}"
+
+# The scripts run on node1. `on node1 ...` then runs locally; the other nodes are reached with ssh. Both take the
+# node and one command string. sudo needs no password on the lab VMs, so no terminal is required.
+# The command string is assembled by the caller for execution on the selected node.
+# shellcheck disable=SC2029
+on() {
+  if [ -n "$TEST_WRAPPER" ]; then $NODE_SSH "$1" "$2"; elif [ "$1" = node1 ]; then bash -c "$2"; else ssh "$1" "$2"; fi
+}
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 
 log() { printf '\n\e[1m== %s\e[0m\n' "$*"; }
