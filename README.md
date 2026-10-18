@@ -14,7 +14,7 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`cluster/`](cluster) | Strimzi operator, Kafka cluster `my-cluster` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
 | [`monitoring/`](monitoring) | Metrics switched on in the Kafka cluster (rolling restart), Prometheus, Grafana with the Strimzi dashboards, Kafka UI | `cluster/` |
 | [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
-| [`workload/`](workload) | Topic, wind park producer and consumers (`./prepare.sh [overlay]`) | `cluster/` |
+| [`workload/`](workload) | Legacy first wind park layout, superseded by `windpark/` (`./prepare.sh [overlay]`) | `cluster/` |
 | [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
 
 All versions are pinned in exactly one file: [`versions.env`](versions.env). Nothing else in the repository
@@ -33,7 +33,7 @@ The rule is "current release minus one", so that the upgrade lab has a real step
 
 ## The wind park workload
 
-Producer and consumer are the JSON applications of the training's template collection, run unchanged as
+Producer and consumer are the JSON applications of the Nordwind wind park, run unchanged as
 Kubernetes Deployments. Every knob is an environment variable that comes from a ConfigMap, so a scenario is a
 patch, never a rebuild:
 
