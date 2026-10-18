@@ -5,7 +5,9 @@
 need kubectl; need jq
 kube_ready || die "kubectl cannot reach the cluster. Run k3s/prepare.sh first."
 kubectl -n "$NS" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || "$ROOT/cluster/prepare.sh"
-[ -x "$ROOT/monitoring/prepare.sh" ] && kubectl get deploy prometheus -n "$NS" >/dev/null 2>&1 || "$ROOT/monitoring/prepare.sh"
+if ! kubectl get deploy prometheus -n "$NS" >/dev/null 2>&1; then
+  "$ROOT/monitoring/prepare.sh"
+fi
 kubectl get ns windpark >/dev/null 2>&1 || "$ROOT/windpark/prepare.sh"
 "$ROOT/tools/prepare.sh"
 "$(dirname "$0")/heal.sh"

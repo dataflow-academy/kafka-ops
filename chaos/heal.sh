@@ -16,7 +16,7 @@ kubectl wait node --all --for=condition=Ready --timeout=180s >/dev/null
 
 # P5: replication port. Remove the rules on every node (-D until none is left).
 for node in $(kubectl get nodes -o name | sed 's|node/||'); do
-  on_node "$node" 'for dir in dport sport; do while iptables -t raw -D PREROUTING -p tcp --$dir 9091 -j DROP 2>/dev/null; do :; done; done' >/dev/null
+  on_node "$node" "for dir in dport sport; do while iptables -t raw -D PREROUTING -p tcp --\$dir 9091 -j DROP 2>/dev/null; do :; done; done" >/dev/null
 done
 
 # P4: full volume. Put the data back on the real directory and drop the loop file system.

@@ -14,6 +14,8 @@ for k in telemetry billing alerts; do
   [ "${acks[$k]}" = all ] && acks[$k]=-1
 done
 ensure_tools
+# This program runs in the tools pod; its shell variables must stay literal here.
+# shellcheck disable=SC2016
 job='k={}
 case $k in
   telemetry) a='"${acks[telemetry]}"';; billing) a='"${acks[billing]}"';; alerts) a='"${acks[alerts]}"';;

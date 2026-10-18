@@ -28,7 +28,7 @@ if [ "$(installed_version 1)" != "$K3S_VERSION" ]; then
     --node-ip $SERVER_IP --advertise-address $SERVER_IP --flannel-iface $IFACE \
     --disable traefik --disable servicelb --write-kubeconfig-mode 644"
 fi
-wait_for "k3s server" 120 $NODE_SSH node1 'kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes'
+wait_for "k3s server" 120 "$NODE_SSH" node1 'kubectl --kubeconfig /etc/rancher/k3s/k3s.yaml get nodes'
 
 TOKEN="$($NODE_SSH node1 "$SUDO cat /var/lib/rancher/k3s/server/node-token")"
 

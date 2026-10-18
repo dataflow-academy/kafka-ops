@@ -15,6 +15,8 @@ jobs:
           for overlay in healthy training; do
             kubectl kustomize workload/overlays/$overlay > /dev/null
           done
+      - name: Numbered incident entry points
+        run: python3 -m unittest discover -s tests -v
       - name: Only versions.env pins versions
         run: |
           # Image tags and release numbers belong in versions.env; manifests use ${VARIABLES}.

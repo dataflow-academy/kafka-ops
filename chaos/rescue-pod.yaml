@@ -10,7 +10,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: rescue
-      image: rancher/mirrored-library-busybox:1.37.0
+      image: rancher/mirrored-library-busybox:${BUSYBOX_VERSION}
       command: ["sleep", "3600"]
       volumeMounts:
         - { name: data, mountPath: /data }

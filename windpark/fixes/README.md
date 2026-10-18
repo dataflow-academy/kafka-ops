@@ -1,6 +1,13 @@
 # Wind park fixes
 
 Start states after repairs, so a group that skipped a lab can start the next one.
+These scripts are catch-up tools, not the participant repair path.
+
+In M6, keep `~/windpark.yaml` from onboarding, edit the affected ConfigMap or Deployment,
+and run `kubectl apply -f ~/windpark.yaml`. After changing ConfigMap data, explicitly
+restart only the affected Deployment; new CronJob Jobs read the updated data automatically.
+Do not render the working file again between repairs. `windpark/render.sh` is supplied by
+Day 1 (PR #2); the labs and catch-up scripts assume that material is available.
 
 | | |
 |---|---|

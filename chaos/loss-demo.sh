@@ -16,11 +16,11 @@ ensure_tools
 describe() { kt kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --describe --topic "$topic" | sed -n '2p'; }
 leader=$(describe | sed -n 's/.*Leader: \([0-9]*\).*/\1/p')
 followers=$(describe | sed -n 's/.*Replicas: \([0-9,]*\).*/\1/p' | tr ',' '\n' | grep -vx "$leader")
-log "Partition of $topic: leader broker $leader, followers $(echo $followers)"
+log "Partition of $topic: leader broker $leader, followers $followers"
 
 nodes=()
 for b in $followers; do nodes+=("$(node_of_pod "$(broker_pod "$b")")"); done
-restore() { for n in "${nodes[@]}"; do on_node "$n" 'for d in dport sport; do while iptables -t raw -D PREROUTING -p tcp --$d 9091 -j DROP 2>/dev/null; do :; done; done' >/dev/null 2>&1; done; }
+restore() { for n in "${nodes[@]}"; do on_node "$n" "for d in dport sport; do while iptables -t raw -D PREROUTING -p tcp --\$d 9091 -j DROP 2>/dev/null; do :; done; done" >/dev/null 2>&1; done; }
 trap restore EXIT
 
 before=$(kt kafka-get-offsets.sh --bootstrap-server "$BOOTSTRAP" --topic "$topic" --time latest | awk -F: '{s+=$3} END {print s+0}')

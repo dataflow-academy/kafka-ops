@@ -1,7 +1,17 @@
 # Failures
 
-Material for the lab "Ops goes wrong": six failures of the platform, a script that causes one of them at random,
-and a script that undoes all of them.
+Material for the lab "Ops goes wrong". The participant path uses deterministic numbered
+entry points, each with a "Finger weg!" warning. Participants diagnose the live cluster,
+not the scripts or `chaos-state`. The BOFH chats ask for observations and hypotheses,
+give at most one small hint at a time, and never repair anything.
+
+* `bad-things1.sh`: missing broker (P1), mandatory; the BOFH helps with the tools from M1–M4.
+* `bad-things2.sh`: full broker volume (P4), mandatory unknown incident; the cause is not announced in the lab.
+* `bad-things3.sh`: blocked replication (P5), optional; an even more reluctant BOFH.
+* Node failure remains a guided exercise; the controller quorum and watch namespace are optional.
+
+The lower-level `break.sh` still supports all six scenarios for trainers. `heal.sh` undoes them all.
+Do not stack incidents: recover and verify the cluster before starting the next one.
 
     ./prepare.sh    # cluster, monitoring and wind park running, no failure active, topic windpark_alerts on the broker of node3
     ./reset.sh      # heal.sh, delete the experiment topics and ~/.chaos-started

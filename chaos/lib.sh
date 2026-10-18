@@ -20,7 +20,7 @@ JSON
 }
 
 # Already on every node: k3s ships busybox for its volume provisioner, and busybox has nsenter.
-helper_image() { echo "rancher/mirrored-library-busybox:1.37.0"; }
+helper_image() { echo "rancher/mirrored-library-busybox:${BUSYBOX_VERSION}"; }
 
 # Scales the operator up and makes it notice pods that were deleted while it was away. A freshly started
 # operator only recreates a missing pod when its StrimziPodSet changes (otherwise after about five minutes), so
