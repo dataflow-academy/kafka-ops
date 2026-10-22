@@ -1,0 +1,11 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: maintenance-work-orders
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  topicName: nordwind.maintenance.private.work-orders.state
+  partitions: 1
+  replicas: 3

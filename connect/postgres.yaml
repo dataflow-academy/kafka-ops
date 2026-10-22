@@ -1,0 +1,71 @@
+# The maintenance team's database, "naively" deployed for the lab: no operator, no volume, no backup.
+# wal_level=logical is set for the change-data-capture exercise; the polling connector does not need it.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wartung-db-init
+  namespace: kafka
+data:
+  init.sql: |
+    CREATE TABLE work_orders (
+        id         SERIAL PRIMARY KEY,
+        turbine    VARCHAR(20) NOT NULL,
+        task       VARCHAR(100) NOT NULL,
+        status     VARCHAR(20) NOT NULL DEFAULT 'open',
+        planned_at VARCHAR(10) NOT NULL
+    );
+    INSERT INTO work_orders (id, turbine, task, status, planned_at) VALUES
+        (1, 'WT-0001', 'Gearbox oil change',       'done', '2026-09-02'),
+        (2, 'WT-0007', 'Blade inspection',         'done', '2026-09-09'),
+        (3, 'WT-0012', 'Yaw bearing grease',       'open', '2026-10-20'),
+        (4, 'WT-0003', 'Pitch system test',        'open', '2026-10-21'),
+        (5, 'WT-0021', 'Lightning protection check','open', '2026-10-27'),
+        (6, 'WT-0014', 'Generator brushes',        'open', '2026-11-03'),
+        (7, 'WT-0009', 'Anemometer calibration',   'open', '2026-11-04'),
+        (8, 'WT-0030', 'Tower bolt torque check',  'open', '2026-11-10');
+    SELECT setval('work_orders_id_seq', 8);
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wartung-db
+  namespace: kafka
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: wartung-db}
+  template:
+    metadata:
+      labels: {app: wartung-db}
+    spec:
+      containers:
+        - name: postgres
+          image: public.ecr.aws/docker/library/postgres:17
+          args: ["-c", "wal_level=logical"]
+          env:
+            - {name: POSTGRES_USER, value: wartung}
+            - {name: POSTGRES_PASSWORD, value: wartung}
+            - {name: POSTGRES_DB, value: wartung}
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec: {command: [pg_isready, -U, wartung]}
+          volumeMounts:
+            - {name: init, mountPath: /docker-entrypoint-initdb.d}
+            - {name: data, mountPath: /var/lib/postgresql}
+      volumes:
+        - name: init
+          configMap: {name: wartung-db-init}
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wartung-db
+  namespace: kafka
+spec:
+  selector: {app: wartung-db}
+  ports:
+    - port: 5432
