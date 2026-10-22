@@ -1,0 +1,10 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-demo-single
+  namespace: kafka
+  labels: { strimzi.io/cluster: my-cluster }
+spec:
+  topicName: nordwind.demo.private.single.event
+  partitions: 1
+  replicas: 1

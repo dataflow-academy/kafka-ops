@@ -7,7 +7,7 @@
 need kubectl; need envsubst
 kube_ready || die "kubectl cannot reach the cluster."
 kubectl get namespace "$KAFKA_NAMESPACE" >/dev/null 2>&1 || die "Namespace ${KAFKA_NAMESPACE} is missing. Run cluster/prepare.sh first."
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 N=(-n "$KAFKA_NAMESPACE")
 
 log "Grafana dashboards"
@@ -15,6 +15,8 @@ log "Grafana dashboards"
 # provisioned data source has the fixed uid "prometheus" instead.
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 for f in strimzi-kafka strimzi-kraft strimzi-kafka-exporter strimzi-operators; do
+  # Grafana exports this literal placeholder; the local shell must not expand it.
+  # shellcheck disable=SC2016
   sed 's/\${DS_PROMETHEUS}/prometheus/g' "dashboards/$f.json" > "$tmp/$f.json"
 done
 kubectl "${N[@]}" create configmap dashboards-strimzi --from-file="$tmp" --dry-run=client -o yaml | kubectl "${N[@]}" apply --server-side --force-conflicts -f - >/dev/null
