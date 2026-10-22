@@ -1,0 +1,12 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: turbine-registry
+  namespace: kafka
+  labels: { strimzi.io/cluster: my-cluster }
+spec:
+  partitions: 6
+  replicas: 3
+  config:
+    cleanup.policy: compact
+    min.insync.replicas: "2"

@@ -1,5 +1,0 @@
-# The wind park as it should be: no faults. Reference state and the target of "fix it" labs.
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - ../../base

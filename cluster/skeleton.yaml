@@ -1,0 +1,121 @@
+# Skeleton for the cluster design lab. `cluster/skeleton.sh` writes it to ~/my-cluster.yaml with the versions
+# from versions.env filled in; then replace every placeholder (the word in capitals) and `kubectl apply -f` the file.
+# As it stands the file is rejected: a placeholder is not a number.
+#
+# Fixed for the next days (do not rename): the cluster is called `my-cluster`, the node pools
+# `controller` and `broker`, everything lives in the namespace `kafka`.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: controller
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+  annotations:
+    # Fixed node ids: controllers 100-102.
+    strimzi.io/next-node-ids: "[100-102]"
+spec:
+  replicas: TODO            # how many controllers?
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 5Gi
+        kraftMetadata: shared
+        deleteClaim: true
+  resources:
+    requests: { memory: 768Mi, cpu: 200m }
+    limits: { memory: 1Gi }
+  jvmOptions:
+    "-Xms": 384m
+    "-Xmx": 384m
+  template:
+    pod:
+      # At most one controller per node.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              strimzi.io/pool-name: controller
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: broker
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+  annotations:
+    strimzi.io/next-node-ids: "[0-2]"
+spec:
+  replicas: TODO            # how many brokers?
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: TODO          # disk per broker, for example 20Gi
+        kraftMetadata: shared
+        deleteClaim: true
+  resources:
+    requests: { memory: 2Gi, cpu: "1" }
+    limits: { memory: 3Gi }
+  jvmOptions:
+    "-Xms": 1g
+    "-Xmx": 1g
+---
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: my-cluster
+  namespace: kafka
+spec:
+  kafka:
+    version: ${KAFKA_VERSION}
+    metadataVersion: ${KAFKA_METADATA_VERSION}
+    # The node name becomes broker.rack, so replicas of a partition spread over the nodes.
+    rack:
+      topologyKey: kubernetes.io/hostname
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+      # Reachable from the VMs themselves (self-checks, command line tools): bootstrap on NodePort
+      # 31094 of any node, one NodePort per broker behind it.
+      - name: external
+        port: 9094
+        type: nodeport
+        tls: false
+        configuration:
+          preferredNodePortAddressType: InternalIP
+          bootstrap:
+            nodePort: 31094
+          brokers:
+            - broker: 0
+              nodePort: 31095
+            - broker: 1
+              nodePort: 31096
+            - broker: 2
+              nodePort: 31097
+    config:
+      default.replication.factor: TODO
+      min.insync.replicas: TODO
+      # The internal topics follow the same reasoning.
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}

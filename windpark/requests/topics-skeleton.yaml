@@ -1,0 +1,43 @@
+# The topics of the three onboarding requests. Replace every placeholder (the word in capitals) with your decision, then apply
+# the file. As it stands, Kubernetes or the topic operator rejects it.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: telemetry
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: TODO
+  replicas: 3
+  config:
+    min.insync.replicas: "TODO"
+    retention.ms: "TODO"          # milliseconds; -1 = keep forever
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: turbine-registry
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: TODO
+  replicas: 3
+  config:
+    cleanup.policy: TODO          # delete or compact?
+    min.insync.replicas: "TODO"
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: park-registry
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  partitions: TODO
+  replicas: 3
+  config:
+    cleanup.policy: TODO
+    min.insync.replicas: "TODO"
