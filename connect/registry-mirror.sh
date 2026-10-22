@@ -3,7 +3,7 @@
 # (registry.registry.svc:5000), which resolves only inside Pods; the kubelet pulls on the node, so containerd
 # needs a mirror for that name that points at the NodePort of the registry on the node itself
 # (/etc/rancher/k3s/registries.yaml). The lab VMs have this entry already. The script tries a real pull on each
-# node and adds the entry only where the pull fails, keeping every other entry (the registry credentials).
+# node and adds the entry only where the pull fails, keeping every other entry.
 # Run it on node1 after registry.yaml is applied. Idempotent.
 . "$(dirname "$0")/../lib/common.sh"
 need docker
