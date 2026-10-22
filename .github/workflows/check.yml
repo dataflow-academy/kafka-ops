@@ -10,12 +10,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: shellcheck
         run: shellcheck -x lib/common.sh */*.sh
-      - name: Kustomize overlays render
+      - name: Wind park manifests
+        # PyYAML ships with the runner image; the apt line is a no-op there.
         run: |
-          for overlay in healthy training; do
-            kubectl kustomize workload/overlays/$overlay > /dev/null
-          done
-      - name: Only versions.env pins versions
-        run: |
-          # Image tags and release numbers belong in versions.env; manifests use ${VARIABLES}.
-          ! grep -rnE 'image: .*:[0-9v][0-9.]+' --include='*.yaml' . 
+          sudo apt-get install -y --no-install-recommends python3-yaml
+          python3 -m unittest discover -s tests -v

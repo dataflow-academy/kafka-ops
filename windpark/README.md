@@ -4,15 +4,29 @@ The applications of six teams of the fictional company Nordwind, running in the 
 The platform team (the training participants) operates the Kafka cluster; these are its customers.
 Nothing here needs code changes: every application is configured through a ConfigMap.
 
-    ./prepare.sh               # the wind park as participants meet it: faults F1-F5 built in
+    ./prepare.sh               # the wind park as participants meet it: faults F1-F5 built in (windpark.yaml)
     ./prepare.sh as-requested  # same, plus the topics approved exactly as requested (fault F6)
-    ./prepare.sh healthy       # no faults
-    ./apply.sh                 # only the applications (the onboarding lab; the topics are created by the participants)
+    ./prepare.sh healthy       # no faults (windpark-healthy.yaml)
     ./reset.sh                 # remove everything (the cluster stays)
 
+Two plain manifests hold the whole wind park, ordered by team (ConfigMap and workload next to each other):
+
+* `windpark.yaml` is the training state with the faults F1-F5 built in. Participants copy it to `~/windpark.yaml`,
+  read it, and run `kubectl apply -f ~/windpark.yaml`. They keep editing that copy for the repairs.
+* `windpark-healthy.yaml` is the same without the faults. The catch-up scripts apply it.
+  `diff windpark.yaml windpark-healthy.yaml` shows exactly the fault fields.
+
+The images are public, `ghcr.io/dataflow-academy/...:<commit sha>`, pinned in the files. All resources carry their own
+namespace (`windpark`, or `kafka` for the KafkaTopic of team Alarme).
+
 `requests/topics-skeleton.yaml` is the file participants fill in for the three topics of the onboarding requests.
-`prepare.sh` creates the three topics of the onboarding requests if they do not exist yet (with the grandfathering label of the governance lab when its naming policy is active). Participants
-create them themselves in the onboarding lab and then run `windpark/apply.sh` (it renders the manifests with Kustomize and applies them).
+`prepare.sh` creates those three topics if they do not exist yet (with the grandfathering label of the governance lab
+when its naming policy is active). Participants create them themselves in the onboarding lab.
+
+Editing ConfigMap data in `~/windpark.yaml` and applying it does not restart a Deployment: restart only the affected
+Deployment explicitly with `kubectl rollout restart`. A CronJob uses the changed ConfigMap on its next Job; existing
+Jobs keep their original environment. Copying `windpark.yaml` again would replace the repairs with the initial faulty
+state. `prepare.sh` restarts the Deployments whose ConfigMap it changed.
 
 | Team | Application | Reads / writes |
 |---|---|---|
@@ -26,9 +40,8 @@ create them themselves in the onboarding lab and then run `windpark/apply.sh` (i
 
 ## The faults
 
-Each fault is a Kustomize component in `faults/`. The `kustomization.yaml` in this folder lists F1 to F5;
-a repair is a copy of that file under `fixes/<name>/` without the repaired fault (`resources: [../../base]`,
-`components: [../../faults/...]` for the rest) and `./prepare.sh fixes/<name>`.
+The faults are values in `windpark.yaml`; `windpark-healthy.yaml` has the healthy values. They prepare the exercise;
+participants repair them in their own copy of the file. `fixes/` (day 2 labs) holds catch-up states for skipped labs.
 
 | | Fault | Mechanics |
 |---|---|---|
@@ -45,4 +58,5 @@ Behaviour worth knowing when repairing:
   (also a group that is started later and begins at the earliest offset, for example Abrechnung after F1 is
   repaired) stops on it until its offset is behind the record.
 * Wartung keeps writing a new pill every 20 minutes as long as F2 is in place.
-* `topics/` holds the careful (`sensible`) and the unchecked (`as-requested`) version of the onboarding topics.
+* `topics/` holds the careful (`sensible`) and the unchecked (`as-requested`) version of the onboarding topics, plain
+  files: `kubectl apply -f topics/sensible`.
