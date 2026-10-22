@@ -21,7 +21,7 @@ pristine() {
 
 if ! pristine; then
   log "Removing the current cluster and Strimzi"
-  [ -x "$HERE/windpark/reset.sh" ] && "$HERE/windpark/reset.sh" || true
+  if [ -x "$HERE/windpark/reset.sh" ]; then "$HERE/windpark/reset.sh" || true; fi
   kubectl "${N[@]}" delete kafkatopic,kafkauser --all --ignore-not-found --timeout=180s >/dev/null 2>&1 || true
   "$HERE/cluster/reset.sh"
   log "Strimzi ${STRIMZI_ZK_VERSION}"
