@@ -16,7 +16,7 @@ ssh_t() { if [ "$NODE_SSH" = ssh ]; then ssh -t "$@"; else $NODE_SSH "$@"; fi; }
 
 # Prints the names of the nodes that cannot pull $HOST/probe:1.
 failing_nodes() {
-  local node bad=()
+  local node failing=()
   for node in $(kubectl get nodes -o name | cut -d/ -f2); do
     kubectl delete pod "probe-$node" --ignore-not-found --now >/dev/null
     kubectl run "probe-$node" --image="$HOST/probe:1" --image-pull-policy=Always --restart=Never --overrides="{\"spec\":{\"nodeName\":\"$node\"}}" \
@@ -26,12 +26,12 @@ failing_nodes() {
   for node in $(kubectl get nodes -o name | cut -d/ -f2); do
     local limit=$((SECONDS + 60))
     until [ "$(kubectl get pod "probe-$node" -o jsonpath='{.status.phase}')" = Succeeded ]; do
-      if [ $SECONDS -gt $limit ]; then bad+=("$node"); break; fi
+      if [ $SECONDS -gt $limit ]; then failing+=("$node"); break; fi
       sleep 2
     done
     kubectl delete pod "probe-$node" --ignore-not-found --now >/dev/null
   done
-  echo "${bad[@]:-}"
+  echo "${failing[@]:-}"
 }
 
 docker pull -q "$PROBE_SRC" >/dev/null
