@@ -5,9 +5,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck disable=SC1091
 . "$ROOT/versions.env"
-# Provided by the lab VM: where the workload images live (see versions.env).
-# shellcheck disable=SC1091
-[ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env
 export KAFKA_NAMESPACE KAFKA_CLUSTER
 
 # Lab VMs are reached with `ssh node1..3`. Tests from outside the VMs set NODE_SSH to a wrapper that reaches every node.
@@ -30,14 +27,11 @@ need() { command -v "$1" >/dev/null || die "$1 is missing."; }
 
 # Replaces ${VAR} placeholders with the values from versions.env and nothing
 # else, so a literal $1 in a manifest (Prometheus relabeling) survives.
-VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ' -) \${WIND_IMAGE_REGISTRY}"
+VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ' -)"
 render() {
   set -a
   # shellcheck source=../versions.env
   . "$ROOT/versions.env"
-  # The optional VM-local registry settings are not part of the repository.
-  # shellcheck source=/dev/null
-  [ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env
   set +a
   envsubst "$VERSION_VARS" < "$1"
 }

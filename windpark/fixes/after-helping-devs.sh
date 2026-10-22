@@ -4,6 +4,6 @@
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # The wind park script waits for deployments that crash on the pill; moving the groups in parallel ends the wait early.
 ( sleep 60; "$HERE/skip-poison-pill.sh" ) &
-"$HERE/../prepare.sh" fixes/after-helping-devs
+"$HERE/../prepare.sh" healthy fixes/f3-alerts.yaml
 wait
 "$HERE/skip-poison-pill.sh"
