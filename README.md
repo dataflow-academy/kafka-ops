@@ -14,11 +14,11 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`cluster/`](cluster) | Strimzi operator, Kafka cluster `my-cluster` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
 | [`monitoring/`](monitoring) | Metrics switched on in the Kafka cluster (rolling restart), Prometheus, Grafana with the Strimzi dashboards, Kafka UI | `cluster/` |
 | [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
-| [`workload/`](workload) | Legacy first wind park layout, superseded by `windpark/` (`./prepare.sh [overlay]`) | `cluster/` |
 | [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
 
 All versions are pinned in exactly one file: [`versions.env`](versions.env). Nothing else in the repository
-contains a version number of Strimzi, Kafka, k3s, Prometheus, Grafana, Kafka UI or the workload images.
+contains a version number of Strimzi, Kafka, k3s, Prometheus, Grafana or Kafka UI. (The wind park manifests are plain files
+that name their images and the Kafka image literally.)
 The rule is "current release minus one", so that the upgrade lab has a real step to take.
 
 ## Reaching things
@@ -44,20 +44,11 @@ patch, never a rebuild:
 | `KAFKA_<NAME>` | any client config; `KAFKA_LINGER_MS=20` becomes `linger.ms=20`. Environment wins over the defaults in the code |
 | `JAVA_OPTS` | JVM options such as `-XX:MaxRAMPercentage=70` |
 
-Layout for "broken from the first deployment, fixed in later labs", using Kustomize:
-
-* `workload/base` is the healthy wind park.
-* `workload/components/<fault>` is one fault: a patch to a ConfigMap value, a resource limit, a topic setting. See `_template`.
-* `workload/overlays/training` is the base plus the faults that participants meet first.
-  Each later lab removes the fixed fault from its `components:` list (`overlays/after-<lab>`).
-* `workload/overlays/healthy` is the reference without faults.
-
-`./workload/prepare.sh training` converges the cluster to whatever the overlay lists, `./workload/reset.sh` removes it.
+The wind park is two plain manifests in [`windpark/`](windpark): `windpark.yaml` is the state the participants meet
+(with built-in faults), `windpark-healthy.yaml` is the same without the faults. They are applied with
+`kubectl apply -f`.
 
 ### Images
 
-The images are pulled from a private registry, pinned by commit SHA in `versions.env`. Where the registry is
-(`WIND_IMAGE_REGISTRY`) and the pull credentials come from the lab VM: `/etc/kafka-ops.env` names the registry,
-`/etc/rancher/k3s/registries.yaml` holds the credentials and must exist before k3s is installed. Without access,
-`STAGE_IMAGES_FROM=<sources> ./workload/prepare.sh` builds the same images on the node and imports them into k3s on
-all nodes. That is a stopgap for testing.
+The images are public (`ghcr.io/dataflow-academy/...`) and pinned by commit SHA in the manifests. The nodes need
+no pull credentials.

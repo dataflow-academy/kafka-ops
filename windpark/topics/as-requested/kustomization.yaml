@@ -1,4 +1,0 @@
-# The same topics, approved exactly as requested (500 partitions, min.insync.replicas=3): fault F6.
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources: [telemetry.yaml, turbine-registry.yaml, park-registry.yaml]

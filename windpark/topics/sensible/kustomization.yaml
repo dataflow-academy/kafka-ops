@@ -1,4 +1,0 @@
-# The topics of the three onboarding requests, as a careful platform team would create them.
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources: [telemetry.yaml, turbine-registry.yaml, park-registry.yaml]

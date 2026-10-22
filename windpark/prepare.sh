@@ -3,43 +3,31 @@
 # with the faults F1-F5 built in (see README). Needs the cluster (cluster/prepare.sh). Run it on node1.
 # Idempotent.
 #
-#   ./prepare.sh                 faulty wind park; the topics of the onboarding requests are created
-#                                as a careful platform team would (only if they do not exist yet)
+#   ./prepare.sh                 faulty wind park (windpark.yaml); the topics of the onboarding requests are
+#                                created as a careful platform team would (only if they do not exist yet)
 #   ./prepare.sh as-requested    same, but the topics approved as requested (fault F6)
-#   ./prepare.sh healthy         no faults
-#   ./prepare.sh <dir>           any kustomization below windpark/ (for example fixes/<name>)
-#
-# The images come from the registry named in /etc/kafka-ops.env. For tests without access,
-# STAGE_IMAGES_FROM=<dir with the application sources> builds them on this node and imports them
-# into k3s on all nodes.
+#   ./prepare.sh healthy         no faults (windpark-healthy.yaml)
+#   ./prepare.sh healthy <file>  more manifests applied afterwards (for example fixes/f3-alerts.yaml)
 . "$(dirname "$0")/../lib/common.sh"
-need kubectl; need envsubst
+need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
 kubectl -n "$KAFKA_NAMESPACE" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || die "Kafka cluster is missing. Run cluster/prepare.sh first."
-: "${WIND_IMAGE_REGISTRY:?WIND_IMAGE_REGISTRY is not set. The lab VM provides it in /etc/kafka-ops.env.}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # Deployments that crash-loop on a poison pill never become ready: do not wait four minutes for each.
 ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-240s}"
 MODE="${1:-training}"
-SUDO="${SUDO:-sudo}"
-NODES="${NODES:-1 2 3}"
+[ $# -eq 0 ] || shift
 TOPIC_VARIANT=sensible
+FILES=("$HERE/windpark.yaml")
 case "$MODE" in
   as-requested) TOPIC_VARIANT=as-requested ;;
+  healthy) FILES=("$HERE/windpark-healthy.yaml") ;;
+  training) ;;
+  *) die "Unknown mode: $MODE (training, as-requested or healthy)" ;;
 esac
-if [ -n "${STAGE_IMAGES_FROM:-}" ]; then
-  need docker
-  for spec in java/wind-turbine-producer-json:java/producer-json java/wind-turbine-consumer-json:java/consumer-json \
-              python/wind-masterdata-producer:python/masterdata-producer; do
-    image="${WIND_IMAGE_REGISTRY}/${spec%%:*}:${WIND_IMAGE_TAG}"
-    log "Test stopgap: building $image"
-    docker image inspect "$image" >/dev/null 2>&1 || docker build -q -t "$image" "$STAGE_IMAGES_FROM/${spec##*:}" >/dev/null
-    for n in $NODES; do
-      docker save "$image" | $NODE_SSH "node$n" "$SUDO k3s ctr images import -" >/dev/null
-    done
-  done
-fi
-
+for extra in "$@"; do
+  case "$extra" in /*) FILES+=("$extra") ;; *) FILES+=("$HERE/$extra") ;; esac
+done
 log "Topics of the onboarding requests (${TOPIC_VARIANT})"
 # Only topics that do not exist yet: never overwrite what a group has created.
 # These topics exist before the naming convention. Once the governance lab has put its naming policy in place, they are
@@ -53,7 +41,19 @@ for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry
   else kubectl apply -f "$f"; fi
 done
 
-"$HERE/apply.sh" "$MODE"
+log "Wind park (${MODE})"
+applied="$(for f in "${FILES[@]}"; do kubectl apply -f "$f"; done)"
+echo "$applied"
+# A changed ConfigMap does not restart its Deployment: restart the ones whose settings just changed.
+declare -A DEPLOYMENT=([scada-config]=scada-telemetry [assets-config]=assets-stammdaten [leitwarte-config]=leitwarte
+                       [abrechnung-config]=abrechnung [prognose-config]=prognose [alarme-config]=alarme)
+for cm in "${!DEPLOYMENT[@]}"; do
+  if grep -q "^configmap/$cm configured" <<<"$applied"; then kubectl -n windpark rollout restart "deployment/${DEPLOYMENT[$cm]}"; fi
+done
+# Alarme writes to one topic at a time (F3's own topic or the one that follows the naming convention): remove the other.
+alerts_topic="$(kubectl -n windpark get configmap alarme-config -o jsonpath='{.data.TOPIC}')"
+if [ "$alerts_topic" = windpark_alerts ]; then stale=nordwind.alarme.public.windpark-alert.event; else stale=windpark-alerts; fi
+kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic "$stale" --ignore-not-found
 for d in scada-telemetry assets-stammdaten leitwarte prognose abrechnung alarme; do
   kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
