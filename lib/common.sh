@@ -5,9 +5,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck disable=SC1091
 . "$ROOT/versions.env"
-# Provided by the lab VM: where the workload images live (see versions.env).
-# shellcheck disable=SC1091
-[ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env
 export KAFKA_NAMESPACE KAFKA_CLUSTER
 
 # Lab VMs are reached with `ssh node1..3`. Tests from outside the VMs set NODE_SSH to a wrapper that reaches every node.
@@ -16,6 +13,8 @@ NODE_SSH="${NODE_SSH:-ssh}"
 
 # The scripts run on node1. `on node1 ...` then runs locally; the other nodes are reached with ssh. Both take the
 # node and one command string. sudo needs no password on the lab VMs, so no terminal is required.
+# The command string is assembled by the caller for execution on the selected node.
+# shellcheck disable=SC2029
 on() {
   if [ -n "$TEST_WRAPPER" ]; then $NODE_SSH "$1" "$2"; elif [ "$1" = node1 ]; then bash -c "$2"; else ssh "$1" "$2"; fi
 }
@@ -28,8 +27,14 @@ need() { command -v "$1" >/dev/null || die "$1 is missing."; }
 
 # Replaces ${VAR} placeholders with the values from versions.env and nothing
 # else, so a literal $1 in a manifest (Prometheus relabeling) survives.
-VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ') \${WIND_IMAGE_REGISTRY}"
-render() { set -a; . "$ROOT/versions.env"; [ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env; set +a; envsubst "$VERSION_VARS" < "$1"; }
+VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ' -)"
+render() {
+  set -a
+  # shellcheck source=../versions.env
+  . "$ROOT/versions.env"
+  set +a
+  envsubst "$VERSION_VARS" < "$1"
+}
 apply_tpl() { render "$1" | kubectl apply "${@:2}" -f -; }
 
 # Polls until a command succeeds. wait_for "what" seconds cmd...

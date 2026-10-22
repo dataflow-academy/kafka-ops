@@ -1,0 +1,20 @@
+# Team SCADA writes the telemetry and nothing else. The ACLs carry the Kafka vocabulary:
+# an operation (Write) on a resource (a topic, by literal name or prefix).
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaUser
+metadata:
+  name: scada
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: telemetry
+          patternType: literal
+        operations: [Write, Describe]

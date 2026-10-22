@@ -10,24 +10,24 @@
 need kubectl; need curl; need envsubst
 kube_ready || die "kubectl cannot reach the cluster. Run k3s/prepare.sh first."
 
-STRIMZI_URL="https://github.com/strimzi/strimzi-kafka-operator/releases/download/${STRIMZI_VERSION}/strimzi-cluster-operator-${STRIMZI_VERSION}.yaml"
-sha_var="STRIMZI_INSTALL_SHA256_${STRIMZI_VERSION//./_}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+"$HERE/operator.sh"
 
-log "Namespace ${KAFKA_NAMESPACE}"
-kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
-
-log "Strimzi ${STRIMZI_VERSION}"
-tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
-curl -sfL "$STRIMZI_URL" -o "$tmp" || die "Download failed: $STRIMZI_URL"
-echo "${!sha_var}  $tmp" | sha256sum -c --status || die "Checksum mismatch for $STRIMZI_URL"
-# The release file is written for the namespace "myproject".
-sed "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$tmp" | kubectl apply --server-side --force-conflicts -n "$KAFKA_NAMESPACE" -f - >/dev/null
-kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/strimzi-cluster-operator --timeout=180s
+# A leftover hello cluster would hold the NodePorts 31094-31097.
+"$ROOT/hello/reset.sh" >/dev/null 2>&1 || true
 
 log "Kafka ${KAFKA_VERSION}"
-kubectl -n "$KAFKA_NAMESPACE" apply -f "$(dirname "$0")/metrics-config.yaml"
-apply_tpl "$(dirname "$0")/kafka.yaml" -n "$KAFKA_NAMESPACE"
+apply_tpl "$HERE/kafka.yaml" -n "$KAFKA_NAMESPACE"
 kubectl -n "$KAFKA_NAMESPACE" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=600s
+
+# The reference design as a file, so that later labs (monitoring) can edit and apply
+# ~/my-cluster.yaml on the catch-up path too. A design the group made itself is not touched.
+render "$HERE/kafka.yaml" | sed 's/^metadata:$/metadata:\n  namespace: '"$KAFKA_NAMESPACE"'/' > "$HOME/my-cluster-reference.yaml"
+[ -e "$HOME/my-cluster.yaml" ] || cp "$HOME/my-cluster-reference.yaml" "$HOME/my-cluster.yaml"
+
+# The Kafka command line tools live in their own pod from the second lab on (tools/, owned by the
+# day 2 material; present once that branch is merged).
+[ -x "$HERE/../tools/prepare.sh" ] && "$HERE/../tools/prepare.sh"
 
 # The self-check tests of the labs run as `ssh ... python3 tests.py` and find
 # the cluster through this file (see tests.py.erb in the labs repo).
