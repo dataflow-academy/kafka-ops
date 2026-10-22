@@ -2,10 +2,13 @@
 # Removes k3s from all three nodes (agents first). Run it on node1.
 . "$(dirname "$0")/../lib/common.sh"
 SUDO="${SUDO:-sudo}"
+uninstall() {   # uninstall <node> <script>
+  on "$1" "[ -x $2 ] && $SUDO $2; true"
+}
 for n in 3 2; do
   log "node$n"
-  $NODE_SSH "node$n" "[ -x /usr/local/bin/k3s-agent-uninstall.sh ] && $SUDO /usr/local/bin/k3s-agent-uninstall.sh || true"
+  uninstall "node$n" /usr/local/bin/k3s-agent-uninstall.sh
 done
 log "node1"
-$NODE_SSH node1 "[ -x /usr/local/bin/k3s-uninstall.sh ] && $SUDO /usr/local/bin/k3s-uninstall.sh || true"
-$NODE_SSH node1 'rm -rf ~/.kube'
+uninstall node1 /usr/local/bin/k3s-uninstall.sh
+on node1 'rm -rf ~/.kube'
