@@ -10,7 +10,7 @@ give at most one small hint at a time, and never repair anything.
 * `bad-things3.sh`: blocked replication (P5), optional; an even more reluctant BOFH.
 * Node failure remains a guided exercise; the controller quorum and watch namespace are optional.
 
-The lower-level `break.sh` still supports all six scenarios for trainers. `heal.sh` undoes them all.
+The lower-level `break.sh` still supports all six scenarios for instructors. `heal.sh` undoes them all.
 Do not stack incidents: recover and verify the cluster before starting the next one.
 
     ./prepare.sh    # cluster, monitoring and wind park running, no failure active, topic windpark_alerts on the broker of node3
