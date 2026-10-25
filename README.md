@@ -25,7 +25,7 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`upgrade/`](upgrade) | Cluster at the install versions with monitoring and wind park; a changed cluster is rebuilt | `k3s/` |
 | [`zk-migration/`](zk-migration) | Strimzi 0.45 and a ZooKeeper-based cluster with load; `reset.sh` restores the modern stack | `k3s/` |
 | [`connect/`](connect) | Registry in the cluster, PostgreSQL with a table and its topic; Kafka Connect and the connectors are built in the lab (optional) | `cluster/` |
-| [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
+| [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job on a topic named by the convention | `cluster/` |
 
 Every manifest and script names its versions literally: the Strimzi release in the download URL of
 [`cluster/operator.sh`](cluster/operator.sh), `version` and `metadataVersion` in the `Kafka` resources, the image tags
