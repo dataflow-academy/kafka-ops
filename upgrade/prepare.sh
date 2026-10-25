@@ -18,7 +18,7 @@ if [ "$state" != "$want" ] || [ "${op##*:}" != "1.1.0" ]; then
   kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic,kafkauser --all --ignore-not-found --timeout=180s >/dev/null 2>&1 || true
   "$HERE/cluster/reset.sh"
   "$HERE/cluster/prepare.sh"
-  # The labs edit ~/nordwind-kafka.yaml: after the rebuild it has to be the file of the cluster that runs now.
+  # The labs edit cluster/nordwind-kafka.yaml: after the rebuild it has to be the file of the cluster that runs now.
   adopt_reference_design
   "$HERE/monitoring/prepare.sh"
   "$HERE/windpark/prepare.sh" healthy
@@ -28,6 +28,6 @@ elif [ -n "$(kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" -o jsonpath='{.spec.ka
   "$HERE/security/reset.sh"
 fi
 kubectl "${N[@]}" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=600s
-kubectl -n windpark get deployment leitwarte >/dev/null 2>&1 || "$HERE/windpark/prepare.sh" healthy
+kubectl -n windpark get deployment control-room >/dev/null 2>&1 || "$HERE/windpark/prepare.sh" healthy
 log "Done"
 kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" -o jsonpath='{.status.kafkaVersion} {.status.kafkaMetadataVersion} {.status.operatorLastSuccessfulVersion}{"\n"}'

@@ -1,9 +1,9 @@
-# Team Leitwarte reads the telemetry in the consumer group `leitwarte`. Without Read on the group a consumer
+# Team Control room reads the telemetry in the consumer group `control-room`. Without Read on the group a consumer
 # can neither join nor commit offsets: the topic ACL alone is not enough.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaUser
 metadata:
-  name: leitwarte
+  name: control-room
   namespace: kafka
   labels:
     strimzi.io/cluster: nordwind-kafka
@@ -20,6 +20,6 @@ spec:
         operations: [Read, Describe]
       - resource:
           type: group
-          name: leitwarte
+          name: control-room
           patternType: literal
         operations: [Read]

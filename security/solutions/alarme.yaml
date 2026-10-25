@@ -1,8 +1,8 @@
-# Team Alarme writes its alerts into a topic of its own. It is not a SCADA topic, so the ACL names it.
+# Team Alerts writes its alerts into a topic of its own. It is not a SCADA topic, so the ACL names it.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaUser
 metadata:
-  name: alarme
+  name: alerts
   namespace: kafka
   labels:
     strimzi.io/cluster: nordwind-kafka
@@ -14,6 +14,6 @@ spec:
     acls:
       - resource:
           type: topic
-          name: nordwind.alarme.public.windpark-alert.event
+          name: nordwind.alerts.public.windpark-alert.event
           patternType: literal
         operations: [Write, Describe, Create]

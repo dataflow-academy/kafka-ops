@@ -52,14 +52,14 @@ wait_for() {
 
 kube_ready() { kubectl version >/dev/null 2>&1; }
 
-# After a rebuild from cluster/kafka.yaml: ~/nordwind-kafka.yaml has to describe the cluster that runs now, because
-# the labs edit that file and apply it. A different file is kept as ~/nordwind-kafka.yaml.bak.
+# After a rebuild from cluster/kafka.yaml: cluster/nordwind-kafka.yaml has to describe the cluster that runs now, because
+# the labs edit that file and apply it. A different file is kept as cluster/nordwind-kafka.yaml.bak.
 adopt_reference_design() {
-  local ref="$HOME/nordwind-kafka-reference.yaml" mine="$HOME/nordwind-kafka.yaml"
+  local ref="$ROOT/cluster/kafka.yaml" mine="$ROOT/cluster/nordwind-kafka.yaml"
   [ -e "$ref" ] || return 0
   if [ -e "$mine" ] && ! cmp -s "$ref" "$mine"; then
     cp "$mine" "$mine.bak"
-    log "$HOME/nordwind-kafka.yaml now describes the rebuilt cluster (your file is saved as nordwind-kafka.yaml.bak)"
+    log "cluster/nordwind-kafka.yaml now describes the rebuilt cluster (your file is saved as nordwind-kafka.yaml.bak)"
   fi
   cp "$ref" "$mine"
 }
