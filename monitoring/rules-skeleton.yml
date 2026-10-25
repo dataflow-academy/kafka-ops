@@ -1,8 +1,13 @@
-# Alerting rules for the platform team. The expressions are given; the decisions are yours:
-#   for:       how long must the condition hold before the alert fires? (a value like 5m)
+# Alerting rules for the platform team. The expressions (`expr`) are given; the decisions are yours.
+#
+#   alert:     the name of the alert
+#   expr:      the condition, written in PromQL. It is true while something is wrong.
+#   for:       how long the condition must hold before the alert fires, for example 5m. A short blip that
+#              disappears again within this time raises no alert.
 #   severity:  page   = wake somebody up
 #              ticket = look at it during working hours
-# Replace every placeholder (the word in capitals). As it stands, Prometheus refuses to load this file.
+#
+# Replace every TODO. As it stands, Prometheus refuses to load this file.
 groups:
   - name: kafka-health
     rules:
@@ -33,6 +38,7 @@ groups:
   - name: dev-view
     rules:
       # Lag in seconds: how far behind is a group, measured in how long the topic takes to produce that many records.
+      # The threshold after `>` is in seconds.
       - alert: ConsumerGroupFallingBehind
         expr: |
           sum by (consumergroup, topic) (kafka_consumergroup_lag)
@@ -42,15 +48,3 @@ groups:
         labels: { severity: TODO }
         annotations:
           summary: A consumer group is more than the threshold behind (the threshold is in seconds)
-      - alert: PodCrashLooping
-        expr: increase(kube_pod_container_status_restarts_total{namespace="windpark"}[15m]) > 2
-        for: TODO
-        labels: { severity: TODO }
-        annotations:
-          summary: A pod of a team restarts again and again
-      - alert: JobFailed
-        expr: kube_job_status_failed{namespace="windpark"} > 0
-        for: TODO
-        labels: { severity: TODO }
-        annotations:
-          summary: A job of a team has failed
