@@ -20,8 +20,8 @@ kubectl -n "$KAFKA_NAMESPACE" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Read
 
 # The working file of the later labs (they edit and apply it): the reference design, on the catch-up path too.
 # cluster/nordwind-kafka.yaml (the file the groups edit in the design lab) on the catch-up path too. A design the
-# group made itself (no TODO left in the file) is not touched.
-if grep -q TODO "$HERE/nordwind-kafka.yaml"; then cp "$HERE/kafka.yaml" "$HERE/nordwind-kafka.yaml"; fi
+# group made itself (no ": TODO" left in the file) is not touched.
+if grep -q ": TODO" "$HERE/nordwind-kafka.yaml"; then cp "$HERE/kafka.yaml" "$HERE/nordwind-kafka.yaml"; fi
 
 # The pod with the Kafka command line tools for the places where the access from inside the cluster is the point.
 "$HERE/../tools/prepare.sh"
