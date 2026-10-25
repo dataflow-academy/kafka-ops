@@ -1,5 +1,5 @@
-# Skeleton for the cluster design lab. Copy it to ~/nordwind-kafka.yaml, fill in your decisions where a
-# capitalised placeholder stands, and apply the file with `kubectl apply -f`.
+# Your cluster design. Replace every TODO with your decision and apply the file with `kubectl apply -f`.
+# The later labs change this file, too.
 #
 # Fixed for the next days (do not rename): the cluster is called `nordwind-kafka`, the node pools
 # `controller` and `broker`, everything lives in the namespace `kafka`.
