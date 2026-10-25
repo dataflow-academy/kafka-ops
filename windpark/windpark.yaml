@@ -96,21 +96,21 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: assets-stammdaten
+  name: assets-masterdata
   namespace: windpark
   labels:
-    app.kubernetes.io/name: assets-stammdaten
+    app.kubernetes.io/name: assets-masterdata
     app.kubernetes.io/part-of: wind-park
     team: assets
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: assets-stammdaten
+      app.kubernetes.io/name: assets-masterdata
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: assets-stammdaten
+        app.kubernetes.io/name: assets-masterdata
         app.kubernetes.io/part-of: wind-park
         team: assets
     spec:
@@ -145,40 +145,40 @@ spec:
         - name: tmp
           emptyDir: {}
 ---
-# Team Leitwarte: reads the telemetry in the consumer group `leitwarte`.
+# Team Control room: reads the telemetry in the consumer group `control-room`.
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: leitwarte-config
+  name: control-room-config
   namespace: windpark
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
   BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetry
-  GROUP_ID: leitwarte
+  GROUP_ID: control-room
   JAVA_OPTS: -XX:MaxRAMPercentage=70
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: leitwarte
+  name: control-room
   namespace: windpark
   labels:
-    app.kubernetes.io/name: leitwarte
+    app.kubernetes.io/name: control-room
     app.kubernetes.io/part-of: wind-park
-    team: leitwarte
+    team: control-room
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app.kubernetes.io/name: leitwarte
+      app.kubernetes.io/name: control-room
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: leitwarte
+        app.kubernetes.io/name: control-room
         app.kubernetes.io/part-of: wind-park
-        team: leitwarte
+        team: control-room
     spec:
       securityContext:
         runAsNonRoot: true
@@ -191,7 +191,7 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: leitwarte-config
+                name: control-room-config
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -210,42 +210,42 @@ spec:
         - name: tmp
           emptyDir: {}
 ---
-# Team Abrechnung: reads the telemetry in the consumer group `abrechnung`
+# Team Billing: reads the telemetry in the consumer group `billing`
 # (an older application: it still uses the classic group protocol).
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: abrechnung-config
+  name: billing-config
   namespace: windpark
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
   BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetery
-  GROUP_ID: abrechnung
+  GROUP_ID: billing
   KAFKA_GROUP_PROTOCOL: classic
   JAVA_OPTS: -XX:MaxRAMPercentage=70
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: abrechnung
+  name: billing
   namespace: windpark
   labels:
-    app.kubernetes.io/name: abrechnung
+    app.kubernetes.io/name: billing
     app.kubernetes.io/part-of: wind-park
-    team: abrechnung
+    team: billing
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: abrechnung
+      app.kubernetes.io/name: billing
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: abrechnung
+        app.kubernetes.io/name: billing
         app.kubernetes.io/part-of: wind-park
-        team: abrechnung
+        team: billing
     spec:
       securityContext:
         runAsNonRoot: true
@@ -258,7 +258,7 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: abrechnung-config
+                name: billing-config
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -277,40 +277,40 @@ spec:
         - name: tmp
           emptyDir: {}
 ---
-# Team Prognose: reads the telemetry in the consumer group `prognose`.
+# Team Forecast: reads the telemetry in the consumer group `forecast`.
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: prognose-config
+  name: forecast-config
   namespace: windpark
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
   BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetry
-  GROUP_ID: prognose
+  GROUP_ID: forecast
   JAVA_OPTS: -XX:MaxRAMPercentage=70
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prognose
+  name: forecast
   namespace: windpark
   labels:
-    app.kubernetes.io/name: prognose
+    app.kubernetes.io/name: forecast
     app.kubernetes.io/part-of: wind-park
-    team: prognose
+    team: forecast
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: prognose
+      app.kubernetes.io/name: forecast
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: prognose
+        app.kubernetes.io/name: forecast
         app.kubernetes.io/part-of: wind-park
-        team: prognose
+        team: forecast
     spec:
       securityContext:
         runAsNonRoot: true
@@ -323,7 +323,7 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: prognose-config
+                name: forecast-config
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -343,12 +343,12 @@ spec:
         - name: tmp
           emptyDir: {}
 ---
-# Team Wartung: after every service round the maintenance tool reports the turbine it worked on,
+# Team Maintenance: after every service round the maintenance tool reports the turbine it worked on,
 # as one record in the telemetry topic (written with the console producer).
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: wartung-config
+  name: maintenance-config
   namespace: windpark
   labels:
     app.kubernetes.io/part-of: wind-park
@@ -361,12 +361,12 @@ data:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: wartung-meldung
+  name: maintenance-report
   namespace: windpark
   labels:
-    app.kubernetes.io/name: wartung-meldung
+    app.kubernetes.io/name: maintenance-report
     app.kubernetes.io/part-of: wind-park
-    team: wartung
+    team: maintenance
 spec:
   schedule: "*/20 * * * *"
   concurrencyPolicy: Forbid
@@ -379,9 +379,9 @@ spec:
       template:
         metadata:
           labels:
-            app.kubernetes.io/name: wartung-meldung
+            app.kubernetes.io/name: maintenance-report
             app.kubernetes.io/part-of: wind-park
-            team: wartung
+            team: maintenance
         spec:
           restartPolicy: Never
           securityContext:
@@ -395,7 +395,7 @@ spec:
               imagePullPolicy: IfNotPresent
               envFrom:
                 - configMapRef:
-                    name: wartung-config
+                    name: maintenance-config
               env:
                 - name: KAFKA_HEAP_OPTS
                   value: "-Xmx128m"
@@ -428,7 +428,7 @@ spec:
             - name: tmp
               emptyDir: {}
 ---
-# Team Alarme: writes an alert record every ten seconds into its own topic.
+# Team Alerts: writes an alert record every ten seconds into its own topic.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
@@ -447,7 +447,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: alarme-config
+  name: alerts-config
   namespace: windpark
   labels:
     app.kubernetes.io/part-of: wind-park
@@ -458,23 +458,23 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: alarme
+  name: alerts
   namespace: windpark
   labels:
-    app.kubernetes.io/name: alarme
+    app.kubernetes.io/name: alerts
     app.kubernetes.io/part-of: wind-park
-    team: alarme
+    team: alerts
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: alarme
+      app.kubernetes.io/name: alerts
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: alarme
+        app.kubernetes.io/name: alerts
         app.kubernetes.io/part-of: wind-park
-        team: alarme
+        team: alerts
     spec:
       securityContext:
         runAsNonRoot: true
@@ -487,7 +487,7 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: alarme-config
+                name: alerts-config
           env:
             - name: KAFKA_HEAP_OPTS
               value: "-Xmx128m"

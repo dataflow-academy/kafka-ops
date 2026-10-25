@@ -45,7 +45,7 @@ patch, never a rebuild:
 | `KAFKA_<NAME>` | any client config; `KAFKA_LINGER_MS=20` becomes `linger.ms=20`. Environment wins over the defaults in the code |
 | `JAVA_OPTS` | JVM options such as `-XX:MaxRAMPercentage=70` |
 
-The wind park is two plain manifests in [`windpark/`](windpark): `windpark.yaml` is the state the participants meet
+The wind park is two plain manifests in [`windpark/`](windpark): `windpark-faulty.yaml` is the state the participants meet (they work in `windpark.yaml`, a copy that `windpark/prepare.sh` keeps in step)
 (with built-in faults), `windpark-healthy.yaml` is the same without the faults. They are applied with
 `kubectl apply -f`.
 
