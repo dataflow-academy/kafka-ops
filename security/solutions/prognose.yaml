@@ -6,7 +6,7 @@ metadata:
   name: prognose
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
 spec:
   authentication:
     type: tls

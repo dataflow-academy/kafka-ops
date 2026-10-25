@@ -5,7 +5,7 @@ metadata:
   name: alarme
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
 spec:
   authentication:
     type: tls

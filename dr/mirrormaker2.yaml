@@ -21,7 +21,7 @@ spec:
   mirrors:
     - source:
         alias: primary
-        bootstrapServers: my-cluster-kafka-bootstrap.kafka.svc:9092
+        bootstrapServers: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
       topicsPattern: "telemetry|turbine-registry|park-registry|nordwind\\..*"
       groupsPattern: "leitwarte|prognose|abrechnung"
       sourceConnector:
