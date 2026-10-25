@@ -15,13 +15,13 @@ GHCR_IMAGE = re.compile('^' + re.escape(GHCR_PREFIX) + r'[a-z0-9/-]+:[0-9a-f]{40
 FAULT_FIELDS = {
     ('ConfigMap', 'scada-config', 'data.KAFKA_ACKS'),                                # F5
     ('ConfigMap', 'scada-config', 'data.KAFKA_ENABLE_IDEMPOTENCE'),                  # F5
-    ('ConfigMap', 'abrechnung-config', 'data.TOPIC'),                                # F1
-    ('ConfigMap', 'wartung-config', 'data.POWER_KW'),                                # F2
-    ('ConfigMap', 'alarme-config', 'data.TOPIC'),                                    # F3
-    ('Deployment', 'prognose', 'spec.template.spec.containers.0.resources.requests.cpu'),   # F4
-    ('Deployment', 'prognose', 'spec.template.spec.containers.0.resources.limits.cpu'),     # F4
-    ('KafkaTopic', 'windpark-alerts', ''),                                           # F3, only in windpark.yaml
-    ('KafkaTopic', 'nordwind.alarme.public.windpark-alert.event', ''),               # F3, only in the healthy file
+    ('ConfigMap', 'billing-config', 'data.TOPIC'),                                # F1
+    ('ConfigMap', 'maintenance-config', 'data.POWER_KW'),                                # F2
+    ('ConfigMap', 'alerts-config', 'data.TOPIC'),                                    # F3
+    ('Deployment', 'forecast', 'spec.template.spec.containers.0.resources.requests.cpu'),   # F4
+    ('Deployment', 'forecast', 'spec.template.spec.containers.0.resources.limits.cpu'),     # F4
+    ('KafkaTopic', 'windpark-alerts', ''),                                           # F3, only in windpark-faulty.yaml
+    ('KafkaTopic', 'nordwind.alerts.public.windpark-alert.event', ''),               # F3, only in the healthy file
 }
 
 
@@ -45,7 +45,7 @@ def leaves(node, prefix=''):
 
 
 class WindparkManifests(unittest.TestCase):
-    files = ('windpark.yaml', 'windpark-healthy.yaml')
+    files = ('windpark-faulty.yaml', 'windpark.yaml', 'windpark-healthy.yaml')
 
     def test_files_parse_and_are_complete(self):
         for name in self.files:
@@ -60,7 +60,7 @@ class WindparkManifests(unittest.TestCase):
                     if d['kind'] != 'Namespace':
                         self.assertIn(d['metadata']['namespace'], ('windpark', 'kafka'), d['metadata']['name'])
                     if d['kind'] == 'ConfigMap':
-                        self.assertRegex(d['metadata']['name'], r'^[a-z]+-config$')
+                        self.assertRegex(d['metadata']['name'], r'^[a-z-]+-config$')
 
     def test_config_maps_referenced_by_workloads_exist(self):
         for name in self.files:
@@ -82,7 +82,7 @@ class WindparkManifests(unittest.TestCase):
                     self.assertTrue(GHCR_IMAGE.match(image) or STRIMZI_IMAGE.match(image), image)
 
     def test_files_differ_only_in_the_faults(self):
-        training, healthy = by_name(WINDPARK / 'windpark.yaml'), by_name(WINDPARK / 'windpark-healthy.yaml')
+        training, healthy = by_name(WINDPARK / 'windpark-faulty.yaml'), by_name(WINDPARK / 'windpark-healthy.yaml')
         differences = set()
         for key in set(training) | set(healthy):
             if key not in training or key not in healthy:
@@ -96,7 +96,7 @@ class WindparkManifests(unittest.TestCase):
         for variant in ('sensible', 'as-requested'):
             with self.subTest(variant):
                 files = sorted((WINDPARK / 'topics' / variant).glob('*.yaml'))
-                self.assertEqual([f.name for f in files], ['park-registry.yaml', 'telemetry.yaml', 'turbine-registry.yaml'])
+                self.assertEqual([f.name for f in files], ['maintenance-reports.yaml', 'park-registry.yaml', 'telemetry.yaml', 'turbine-registry.yaml'])
                 for f in files:
                     self.assertEqual([d['kind'] for d in documents(f)], ['KafkaTopic'])
 

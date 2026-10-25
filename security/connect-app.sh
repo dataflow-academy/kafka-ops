@@ -3,7 +3,7 @@
 # namespace (a Secret cannot be mounted across namespaces) and sets the bootstrap address and six client settings on the
 # Deployment that make the application connect with mutual TLS to the tls listener.
 #
-#   ./connect-app.sh <deployment> <user> [namespace]      e.g.  ./connect-app.sh leitwarte leitwarte
+#   ./connect-app.sh <deployment> <user> [namespace]      e.g.  ./connect-app.sh control-room control-room
 #
 # In production the team would do this in its own repository; the settings are plain client configs:
 #   BOOTSTRAP_SERVERS  ...:9093      KAFKA_SECURITY_PROTOCOL=SSL

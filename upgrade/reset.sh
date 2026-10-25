@@ -6,5 +6,6 @@ HERE="$(cd "$(dirname "$0")/.." && pwd)"
 kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic,kafkauser --all --ignore-not-found --timeout=180s >/dev/null 2>&1 || true
 "$HERE/cluster/reset.sh"
 "$HERE/cluster/prepare.sh"
+adopt_reference_design
 "$HERE/monitoring/prepare.sh"
 "$HERE/windpark/prepare.sh" healthy

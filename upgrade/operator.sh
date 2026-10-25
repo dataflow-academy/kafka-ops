@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 # Installs a Strimzi release: a thin wrapper around cluster/operator.sh, which does the work (download, sha256
-# check, namespace, apply). The upgrade lab uses it to name the target version explicitly.
+# check, namespace, apply). The upgrade lab does the same steps by hand; this is the rescue path.
 #
-#   ./operator.sh [version]     default: STRIMZI_UPGRADE_VERSION from versions.env
+#   ./operator.sh [version]     default 1.2.0, the release the upgrade lab goes to
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
-. "$HERE/lib/common.sh"
-version="${1:-$STRIMZI_UPGRADE_VERSION}"
-# The version goes in as an argument and, for a cluster/operator.sh that only reads the environment, as STRIMZI_VERSION.
-STRIMZI_VERSION="$version" exec "$HERE/cluster/operator.sh" "$version"
+exec "$HERE/cluster/operator.sh" "${1:-1.2.0}"

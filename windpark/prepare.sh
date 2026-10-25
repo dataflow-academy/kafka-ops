@@ -3,7 +3,7 @@
 # with the faults F1-F5 built in (see README). Needs the cluster (cluster/prepare.sh). Run it on node1.
 # Idempotent.
 #
-#   ./prepare.sh                 faulty wind park (windpark.yaml); the topics of the onboarding requests are
+#   ./prepare.sh                 faulty wind park (windpark-faulty.yaml); the topics of the onboarding requests are
 #                                created as a careful platform team would (only if they do not exist yet)
 #   ./prepare.sh as-requested    same, but the topics approved as requested (fault F6)
 #   ./prepare.sh healthy         no faults (windpark-healthy.yaml)
@@ -18,7 +18,7 @@ ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-240s}"
 MODE="${1:-training}"
 [ $# -eq 0 ] || shift
 TOPIC_VARIANT=sensible
-FILES=("$HERE/windpark.yaml")
+FILES=("$HERE/windpark-faulty.yaml")
 case "$MODE" in
   as-requested) TOPIC_VARIANT=as-requested ;;
   healthy) FILES=("$HERE/windpark-healthy.yaml") ;;
@@ -34,7 +34,7 @@ log "Topics of the onboarding requests (${TOPIC_VARIANT})"
 # created grandfathered (the label the lab sets by hand), otherwise the policy would reject them.
 label=()
 kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1 && label=(governance.nordwind/grandfathered=true)
-for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry}.yaml; do
+for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry,maintenance-reports}.yaml; do
   name="$(sed -n 's/^  name: //p' "$f")"
   if kubectl -n "$KAFKA_NAMESPACE" get kafkatopic "$name" >/dev/null 2>&1; then echo "exists: $name"
   elif [ ${#label[@]} -gt 0 ]; then kubectl label --local -f "$f" "${label[@]}" -o yaml | kubectl apply -f -
@@ -42,26 +42,28 @@ for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry
 done
 
 log "Wind park (${MODE})"
+# windpark.yaml is the working file of the labs (they edit it and apply it): it takes over the state of this start state.
+cp "${FILES[0]}" "$HERE/windpark.yaml"
 applied="$(for f in "${FILES[@]}"; do kubectl apply -f "$f"; done)"
 echo "$applied"
 # A changed ConfigMap does not restart its Deployment: restart the ones whose settings just changed.
-declare -A DEPLOYMENT=([scada-config]=scada-telemetry [assets-config]=assets-stammdaten [leitwarte-config]=leitwarte
-                       [abrechnung-config]=abrechnung [prognose-config]=prognose [alarme-config]=alarme)
+declare -A DEPLOYMENT=([scada-config]=scada-telemetry [assets-config]=assets-masterdata [control-room-config]=control-room
+                       [billing-config]=billing [forecast-config]=forecast [alerts-config]=alerts)
 for cm in "${!DEPLOYMENT[@]}"; do
   if grep -q "^configmap/$cm configured" <<<"$applied"; then kubectl -n windpark rollout restart "deployment/${DEPLOYMENT[$cm]}"; fi
 done
-# Alarme writes to one topic at a time (F3's own topic or the one that follows the naming convention): remove the other.
-alerts_topic="$(kubectl -n windpark get configmap alarme-config -o jsonpath='{.data.TOPIC}')"
-if [ "$alerts_topic" = windpark_alerts ]; then stale=nordwind.alarme.public.windpark-alert.event; else stale=windpark-alerts; fi
+# Alerts writes to one topic at a time (F3's own topic or the one that follows the naming convention): remove the other.
+alerts_topic="$(kubectl -n windpark get configmap alerts-config -o jsonpath='{.data.TOPIC}')"
+if [ "$alerts_topic" = windpark_alerts ]; then stale=nordwind.alerts.public.windpark-alert.event; else stale=windpark-alerts; fi
 kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic "$stale" --ignore-not-found
-for d in scada-telemetry assets-stammdaten leitwarte prognose abrechnung alarme; do
+for d in scada-telemetry assets-masterdata control-room forecast billing alerts; do
   kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
 # A consumer stuck on the old poison pill never becomes ready; fixes/ ships with the day 2 labs.
 if [ "$MODE" = healthy ] && [ -x "$HERE/fixes/skip-poison-pill.sh" ]; then
   consumers_ready() {
     local d
-    for d in leitwarte prognose abrechnung; do
+    for d in control-room forecast billing; do
       [ "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.status.readyReplicas}')" = "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.spec.replicas}')" ] || return 1
     done
   }

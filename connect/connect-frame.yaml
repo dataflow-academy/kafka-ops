@@ -1,4 +1,4 @@
-# Frame for the Connect lab: copy it to ~/connect.yaml, fill in every TODO and apply it with `kubectl apply -f`.
+# The pristine frame of connect.yaml (reset.sh copies it back). The lab edits connect.yaml, not this file.
 # The build does not succeed on the first try.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnect

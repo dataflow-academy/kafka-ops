@@ -1,4 +1,4 @@
-# The solution: polling with an incrementing id.
+# Working file for the polling connector. Connection and topic are given; how the connector finds new rows is yours.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnector
 metadata:
@@ -10,12 +10,12 @@ spec:
   class: io.confluent.connect.jdbc.JdbcSourceConnector
   tasksMax: 1
   config:
-    connection.url: jdbc:postgresql://wartung-db:5432/wartung
-    connection.user: wartung
-    connection.password: wartung
+    connection.url: jdbc:postgresql://maintenance-db:5432/maintenance
+    connection.user: maintenance
+    connection.password: maintenance
     # With `query` the value of topic.prefix is the complete topic name.
     query: SELECT * FROM work_orders
     topic.prefix: nordwind.maintenance.private.work-orders.state
     poll.interval.ms: 5000
-    mode: incrementing
-    incrementing.column.name: id
+    mode: TODO
+    incrementing.column.name: TODO

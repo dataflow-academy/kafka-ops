@@ -21,7 +21,7 @@ kubectl -n registry rollout status deployment/registry --timeout=180s
 
 log "PostgreSQL of the maintenance team"
 kubectl apply -f "$(dirname "$0")/postgres.yaml"
-kubectl "${N[@]}" rollout status deployment/wartung-db --timeout=300s
+kubectl "${N[@]}" rollout status deployment/maintenance-db --timeout=300s
 kubectl apply -f "$(dirname "$0")/topic.yaml"
 kubectl "${N[@]}" wait kafkatopic/maintenance-work-orders --for=condition=Ready --timeout=120s
 kubectl "${N[@]}" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=300s

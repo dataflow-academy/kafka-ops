@@ -8,6 +8,6 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 "$HERE/metrics.sh"
 "$HERE/install.sh"
 log "Alerting rules"
-kubectl -n "$KAFKA_NAMESPACE" create configmap prometheus-rules --from-file=rules.yml="$HERE/rules.yml" --dry-run=client -o yaml | kubectl -n "$KAFKA_NAMESPACE" apply -f - >/dev/null
+kubectl -n "$KAFKA_NAMESPACE" create configmap prometheus-rules --from-file=rules.yml="$HERE/rules-reference.yml" --dry-run=client -o yaml | kubectl -n "$KAFKA_NAMESPACE" apply -f - >/dev/null
 kubectl -n "$KAFKA_NAMESPACE" rollout restart deployment/prometheus >/dev/null
 kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/prometheus --timeout=120s

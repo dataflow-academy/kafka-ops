@@ -11,11 +11,11 @@ spec:
   class: io.debezium.connector.postgresql.PostgresConnector
   tasksMax: 1
   config:
-    database.hostname: wartung-db
+    database.hostname: maintenance-db
     database.port: 5432
-    database.user: wartung
-    database.password: wartung
-    database.dbname: wartung
+    database.user: maintenance
+    database.password: maintenance
+    database.dbname: maintenance
     plugin.name: pgoutput
     table.include.list: public.work_orders
     topic.prefix: nordwind.maintenance.cdc

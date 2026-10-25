@@ -5,8 +5,9 @@ Start state (`prepare.sh`): the cluster is Ready with three brokers and no Cruis
 
 The topic name follows the naming convention of the governance lab, so its admission policies can stay in place.
 
-The lab itself (switch on Cruise Control, add a fourth broker to the node pool, `KafkaRebalance` in mode
-`add-brokers`, approve with an annotation) needs no file from this folder.
+`load.yaml` is the load the lab applies: the `KafkaTopic` and a Job that fills it. The lab itself (switch on Cruise
+Control and the rack in the `Kafka` resource, add a fourth broker to the node pool, `KafkaRebalance` in mode
+`add-brokers`, approve with an annotation) needs no other file from this folder.
 
 `reset.sh` brings the cluster back to three brokers and no Cruise Control. A broker that carries replicas cannot
 simply be scaled away: Strimzi reverts the scale-down. So `reset.sh` empties broker 3 with a `remove-brokers`
