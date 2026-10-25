@@ -6,7 +6,7 @@
 #   ./install.sh          the correct Prometheus configuration (without the scrape fault of the lab)
 #
 # The monitoring lab applies the same files by hand with `kubectl apply -k`; there the fault is still in
-# prometheus.yaml (the lines marked LAB-FAULT) and the participants repair it.
+# prometheus.yaml (the drop rule after the comment about the Kafka Exporter's own job) and the participants repair it.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
@@ -16,7 +16,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 log "Prometheus, kube-state-metrics, Grafana with the dashboards"
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 cp -r "$HERE/." "$tmp/"
-sed -i '/LAB-FAULT/d' "$tmp/prometheus.yaml"
+sed -i '/The Kafka Exporter has its own job/,+3d' "$tmp/prometheus.yaml"
 kubectl apply -k "$tmp" >/dev/null
 kubectl apply -f "$HERE/../kafka-ui/kafka-ui.yaml" >/dev/null
 # A changed Prometheus configuration only takes effect in a new pod.

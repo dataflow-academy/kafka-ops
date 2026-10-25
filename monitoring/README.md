@@ -11,7 +11,7 @@ from empty.
 | Script | What it does |
 |---|---|
 | `metrics.sh` | switches on the JMX Prometheus Exporter and the Kafka Exporter in the Kafka cluster (rolling restart, once) |
-| `install.sh` | Prometheus, kube-state-metrics, Grafana, Kafka UI (`../kafka-ui`, usually there since the first lab), without the scrape fault. The monitoring lab applies the same files with `kubectl apply -k .` and repairs the fault (lines marked `LAB-FAULT` in `prometheus.yaml`) |
+| `install.sh` | Prometheus, kube-state-metrics, Grafana, Kafka UI (`../kafka-ui`, usually there since the first lab), without the scrape fault. The monitoring lab applies the same files with `kubectl apply -k .` and repairs the fault (the `drop` rule next to the comment about the Kafka Exporter in `prometheus.yaml`) |
 | `prepare.sh` | all of the above (without the lab fault) plus the reference alerting rules |
 | `reset.sh` | removes what `install.sh` created, except Kafka UI |
 
