@@ -6,7 +6,7 @@
 #   ./install.sh          the correct Prometheus configuration
 #   ./install.sh --lab    the configuration the monitoring lab starts with: one scrape target is missing
 . "$(dirname "$0")/../lib/common.sh"
-need kubectl; need envsubst
+need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
 kubectl get namespace "$KAFKA_NAMESPACE" >/dev/null 2>&1 || die "Namespace ${KAFKA_NAMESPACE} is missing. Run cluster/prepare.sh first."
 cd "$(dirname "$0")" || exit 1
@@ -26,12 +26,13 @@ kubectl "${N[@]}" create configmap dashboards-wind-park --from-file=dashboards/w
 
 log "Prometheus, kube-state-metrics, Grafana, Kafka UI"
 EXPORTER_DROP='          # The Kafka Exporter has its own job further down.\n          - source_labels: [__meta_kubernetes_pod_label_strimzi_io_name]\n            regex: .*-kafka-exporter\n            action: drop'
-for f in prometheus kube-state-metrics grafana kafka-ui; do
+for f in prometheus kube-state-metrics grafana; do
   if [ "$f" = prometheus ]; then
-    if [ "${1:-}" = "--lab" ]; then render "$f.yaml" | sed "s|^ *#LAB:EXPORTER-DROP|$EXPORTER_DROP|" | kubectl "${N[@]}" apply -f - >/dev/null
-    else render "$f.yaml" | sed '/#LAB:EXPORTER-DROP/d' | kubectl "${N[@]}" apply -f - >/dev/null; fi
-  else apply_tpl "$f.yaml" "${N[@]}" >/dev/null; fi
+    if [ "${1:-}" = "--lab" ]; then sed "s|^ *#LAB:EXPORTER-DROP|$EXPORTER_DROP|" "$f.yaml" | kubectl "${N[@]}" apply -f - >/dev/null
+    else sed '/#LAB:EXPORTER-DROP/d' "$f.yaml" | kubectl "${N[@]}" apply -f - >/dev/null; fi
+  else kubectl "${N[@]}" apply -f "$f.yaml" >/dev/null; fi
 done
+kubectl apply -f ../kafka-ui/kafka-ui.yaml >/dev/null
 # A changed Prometheus configuration only takes effect in a new pod.
 kubectl "${N[@]}" rollout restart deployment/prometheus >/dev/null
 for d in prometheus kube-state-metrics grafana kafka-ui; do kubectl "${N[@]}" rollout status "deployment/$d" --timeout=240s; done
