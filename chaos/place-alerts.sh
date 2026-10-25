@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Puts the topic of team Alarme (windpark_alerts, one replica, fault F3) on the broker that runs on node3, so that
+# Puts the topic of team Alerts (windpark_alerts, one replica, fault F3) on the broker that runs on node3, so that
 # every group finds it on the same node when that node fails. Idempotent. Run it on node1.
 . "$(dirname "$0")/lib.sh"
 need kubectl; need jq

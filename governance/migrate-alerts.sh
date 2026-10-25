@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copies the alerts of the old topic windpark_alerts into the new topic nordwind.alarme.public.windpark-alert.event.
+# Copies the alerts of the old topic windpark_alerts into the new topic nordwind.alerts.public.windpark-alert.event.
 # It remembers how far it has copied (~/.alerts-copied), so a second run copies only what arrived since: the team
 # keeps writing into the old topic until it has been switched over. Idempotent. Run it on node1.
 . "$(dirname "$0")/../lib/common.sh"
@@ -7,10 +7,12 @@ kube_ready || die "kubectl cannot reach the cluster."
 NS="$KAFKA_NAMESPACE"
 BS="nordwind-kafka-kafka-bootstrap:9092"
 OLD=windpark_alerts
-NEW=nordwind.alarme.public.windpark-alert.event
+NEW=nordwind.alerts.public.windpark-alert.event
 STATE="$HOME/.alerts-copied"
 kt() { kubectl -n "$NS" exec -i deploy/kafka-tools -- "$@"; }
-kt kafka-topics.sh --bootstrap-server "$BS" --describe --topic "$NEW" >/dev/null 2>&1 || die "The new topic $NEW does not exist yet. Apply alerts-topic.yaml first."
+ensure_tools
+# The Topic Operator needs a moment to create the topic after kubectl apply.
+wait_for "the new topic $NEW" 90 kt kafka-topics.sh --bootstrap-server "$BS" --describe --topic "$NEW" || die "The new topic $NEW does not exist yet. Apply alerts-topic.yaml first."
 kt kafka-topics.sh --bootstrap-server "$BS" --describe --topic "$OLD" >/dev/null 2>&1 || die "The old topic $OLD is already gone, there is nothing left to copy."
 from=$(cat "$STATE" 2>/dev/null || echo 0)
 end=$(kt kafka-get-offsets.sh --bootstrap-server "$BS" --topic "$OLD" --time latest | awk -F: '{s+=$3} END {print s+0}')

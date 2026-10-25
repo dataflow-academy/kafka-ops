@@ -1,8 +1,8 @@
-# The topic team Alarme should have had from the start: named by the convention, three replicas.
+# The topic team Alerts should have had from the start: named by the convention, three replicas.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
-  name: nordwind.alarme.public.windpark-alert.event
+  name: nordwind.alerts.public.windpark-alert.event
   namespace: kafka
   labels:
     strimzi.io/cluster: nordwind-kafka
