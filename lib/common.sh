@@ -63,3 +63,9 @@ adopt_reference_design() {
   fi
   cp "$ref" "$mine"
 }
+
+# The pod with the Kafka command line tools for the scripts that work from inside the cluster (tools/kafka-tools.yaml,
+# applied by the participants in the design lab).
+ensure_tools() {
+  kubectl -n "$KAFKA_NAMESPACE" get deployment kafka-tools >/dev/null 2>&1 || "$ROOT/tools/prepare.sh" >/dev/null
+}
