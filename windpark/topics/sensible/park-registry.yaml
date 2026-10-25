@@ -3,7 +3,7 @@ kind: KafkaTopic
 metadata:
   name: park-registry
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster }
+  labels: { strimzi.io/cluster: nordwind-kafka }
 spec:
   partitions: 6
   replicas: 3

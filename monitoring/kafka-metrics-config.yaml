@@ -1,8 +1,8 @@
 # JMX Prometheus Exporter rules for the Kafka brokers and controllers.
-# Taken unchanged from the examples of the Strimzi release pinned in versions.env
+# Taken unchanged from the examples of Strimzi 1.1.0
 # (examples/metrics/kafka-metrics.yaml);
 # the Grafana dashboards in ../monitoring/dashboards are written against exactly these metric names.
-# When STRIMZI_VERSION changes, take the file from the same release.
+# When the Strimzi version changes, take the file from the same release.
 apiVersion: v1
 kind: ConfigMap
 metadata:
