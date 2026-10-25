@@ -37,9 +37,9 @@ class BadThingsTest(unittest.TestCase):
                                     env=dict(os.environ, HOME=directory), text=True, capture_output=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             text = (Path(directory) / 'rescue.yaml').read_text()
-            self.assertIn('claimName: data-0-my-cluster-broker-N', text)
+            self.assertIn('claimName: data-0-nordwind-kafka-broker-N', text)
             self.assertIn('image: rancher/mirrored-library-busybox:1.37.0', text)
-            self.assertNotIn('${BUSYBOX_VERSION}', text)
+            self.assertNotIn('${', text)
 
     def test_failed_injection_is_not_marked_as_started(self):
         for number in (1, 2, 3):

@@ -7,7 +7,7 @@ kind: KafkaTopic
 metadata:
   name: chaos-telemetry
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: failures }
 spec:
   partitions: 1
   replicas: 3
@@ -20,7 +20,7 @@ kind: KafkaTopic
 metadata:
   name: chaos-billing
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: failures }
 spec:
   partitions: 1
   replicas: 3
@@ -33,7 +33,7 @@ kind: KafkaTopic
 metadata:
   name: chaos-alerts
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster, training/experiment: failures }
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: failures }
 spec:
   partitions: 1
   replicas: 3

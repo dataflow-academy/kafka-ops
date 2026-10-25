@@ -3,7 +3,7 @@ kind: KafkaTopic
 metadata:
   name: nordwind-demo-isr
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster }
+  labels: { strimzi.io/cluster: nordwind-kafka }
 spec:
   topicName: nordwind.demo.private.isr.event
   partitions: 6

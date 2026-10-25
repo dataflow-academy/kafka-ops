@@ -10,7 +10,7 @@ give at most one small hint at a time, and never repair anything.
 * `bad-things3.sh`: blocked replication (P5), optional; an even more reluctant BOFH.
 * Node failure remains a guided exercise; the controller quorum and watch namespace are optional.
 
-The lower-level `break.sh` still supports all six scenarios for trainers. `heal.sh` undoes them all.
+The lower-level `break.sh` still supports all six scenarios for instructors. `heal.sh` undoes them all.
 Do not stack incidents: recover and verify the cluster before starting the next one.
 
     ./prepare.sh    # cluster, monitoring and wind park running, no failure active, topic windpark_alerts on the broker of node3
@@ -34,5 +34,11 @@ Do not stack incidents: recover and verify the cluster before starting the next 
 | P5 | the replication port of a node is dropped by iptables | ISR shrinks, under-replicated partitions |
 | P6 | operator and topic operator watch the wrong namespace | a new `KafkaTopic` never gets a status |
 
-`break.sh` needs neither ssh nor sudo: it works through short-lived privileged pods. `heal.sh` needs `ssh nodeN`
-and `sudo` once (a stopped k3s agent can only be started on the node); it asks for the sudo password if needed.
+`break.sh` needs neither ssh nor sudo: it works through short-lived privileged pods. `heal.sh` needs `ssh $IP.N`
+and `sudo` once (a stopped k3s agent can only be started on the node).
+
+The scripts do not depend on the design the group chose, except for the numbers it asks for: three or more brokers
+(the experiment topics have three replicas), an odd number of at least three controllers, and the
+`strimzi.io/pool-name` labels `broker` and `controller` of the design skeleton. `check.sh` counts the pods the node pools ask for.
+The node failure and the topic of team Alarme need one broker and one controller per node; with the reference design
+(`cluster/prepare.sh`) that is the case, a design without spreading may break it.

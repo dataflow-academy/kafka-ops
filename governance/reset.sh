@@ -14,7 +14,7 @@ for _ in $(seq 20); do
   sleep 3
 done
 rm -f "$HOME/.alerts-copied"
-kubectl -n "$NS" exec deploy/kafka-tools -- kafka-configs.sh --bootstrap-server "my-cluster-kafka-bootstrap:9092" \
+kubectl -n "$NS" exec deploy/kafka-tools -- kafka-configs.sh --bootstrap-server "nordwind-kafka-kafka-bootstrap:9092" \
   --alter --entity-type clients --entity-name wartung --delete-config producer_byte_rate >/dev/null 2>&1 || true
 current=$(kubectl -n "$NS" get kafka "$KAFKA_CLUSTER" -o "jsonpath={.spec.kafka.config.auto\.create\.topics\.enable}" 2>/dev/null || true)
 if [ -n "$current" ]; then

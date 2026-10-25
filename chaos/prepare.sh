@@ -8,7 +8,10 @@ kubectl -n "$NS" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || "$ROOT/cluster/pr
 if ! kubectl get deploy prometheus -n "$NS" >/dev/null 2>&1; then
   "$ROOT/monitoring/prepare.sh"
 fi
-kubectl get ns windpark >/dev/null 2>&1 || "$ROOT/windpark/prepare.sh"
+# The wind park and its topics: after cluster/reset.sh the namespace windpark is still there, the topics are not.
+if ! kubectl get ns windpark >/dev/null 2>&1 || ! kubectl -n "$NS" get kafkatopic telemetry >/dev/null 2>&1; then
+  "$ROOT/windpark/prepare.sh"
+fi
 "$ROOT/tools/prepare.sh"
 "$(dirname "$0")/heal.sh"
 if kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1; then

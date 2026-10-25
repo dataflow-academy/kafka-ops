@@ -28,7 +28,7 @@ case "$pick" in
     state_set P2 "$agent" ;;
   P3) # two of three controllers gone, the operator cannot bring them back
     operator_scale 0
-    kubectl -n "$NS" delete pod my-cluster-controller-100 my-cluster-controller-101 --wait=false >/dev/null
+    kubectl -n "$NS" delete pod nordwind-kafka-controller-100 nordwind-kafka-controller-101 --wait=false >/dev/null
     state_set P3 "controllers-100-101" ;;
   P4) # the volume of one broker is full (a loop file system of the size of its data, filled by a "heap dump")
     pod="$(broker_pod "$broker")"
@@ -51,7 +51,7 @@ case "$pick" in
     on_node "$agent" 'iptables -t raw -I PREROUTING 1 -p tcp --dport 9091 -j DROP; iptables -t raw -I PREROUTING 1 -p tcp --sport 9091 -j DROP' >/dev/null
     state_set P5 "$agent" ;;
   P6) # the operator watches another namespace and leaves the topic operator in the wrong one
-    kubectl -n "$NS" set env deployment/my-cluster-entity-operator -c topic-operator STRIMZI_NAMESPACE=default >/dev/null
+    kubectl -n "$NS" set env deployment/nordwind-kafka-entity-operator -c topic-operator STRIMZI_NAMESPACE=default >/dev/null
     kubectl -n "$NS" set env deployment/strimzi-cluster-operator STRIMZI_NAMESPACE=default >/dev/null
     state_set P6 "operator" ;;
   *) die "Unknown failure $pick" ;;

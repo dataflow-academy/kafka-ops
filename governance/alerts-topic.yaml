@@ -5,7 +5,7 @@ metadata:
   name: nordwind.alarme.public.windpark-alert.event
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
     app.kubernetes.io/part-of: wind-park
 spec:
   partitions: 3
