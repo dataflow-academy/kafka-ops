@@ -20,7 +20,7 @@ spec:
             - >-
               bin/kafka-producer-perf-test.sh --topic ${PERF_TOPIC}
               --num-records ${PERF_RECORDS} --record-size ${PERF_RECORD_SIZE} --throughput ${PERF_THROUGHPUT}
-              --producer-props bootstrap.servers=my-cluster-kafka-bootstrap:9092 ${PERF_PRODUCER_PROPS}
+              --producer-props bootstrap.servers=nordwind-kafka-kafka-bootstrap:9092 ${PERF_PRODUCER_PROPS}
           resources:
             requests: { cpu: 500m, memory: 512Mi }
             limits: { memory: 1Gi }

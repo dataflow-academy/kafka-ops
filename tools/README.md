@@ -1,7 +1,10 @@
 # Kafka tools
 
-The lab VMs have no Kafka installation. `prepare.sh` starts a pod with the command line tools on node1:
+The command line tools (`kafka-topics.sh`, ...) are installed on the lab VMs and talk to the cluster through the external
+NodePort listener (`$IP.1:31094`), like a laptop outside the cluster. `kafka-tools.yaml` is a pod with the same tools
+INSIDE the cluster on node1, for the places where the access from inside is the point:
 
-    kubectl exec -i deploy/kafka-tools -- kafka-topics.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --list
+    kubectl apply -f tools/kafka-tools.yaml
+    kubectl exec -i deploy/kafka-tools -- kafka-topics.sh --bootstrap-server nordwind-kafka-kafka-bootstrap:9092 --list
 
-`reset.sh` removes it. Idempotent.
+`prepare.sh` applies it and waits; `reset.sh` removes it. Idempotent.

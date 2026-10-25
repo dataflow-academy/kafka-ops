@@ -7,7 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Fixed names of the labs. Versions are not kept here: every manifest and script names its versions literally.
 KAFKA_NAMESPACE=kafka
-KAFKA_CLUSTER=my-cluster
+KAFKA_CLUSTER=nordwind-kafka
 export KAFKA_NAMESPACE KAFKA_CLUSTER
 
 # Integration only (modules not yet reworked still use placeholders): versions.env and the render helpers.
