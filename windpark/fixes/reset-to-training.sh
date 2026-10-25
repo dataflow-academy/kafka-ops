@@ -11,5 +11,5 @@ kubectl -n "$NS" get deploy prometheus >/dev/null 2>&1 || "$ROOT/monitoring/prep
 [ -x "$ROOT/governance/reset.sh" ] && "$ROOT/governance/reset.sh" >/dev/null
 "$ROOT/windpark/prepare.sh"
 # The maintenance tool writes its pill only every 20 minutes; do not wait for it.
-kubectl -n windpark create job --from=cronjob/wartung-meldung "wartung-start-$(date +%s)" >/dev/null
+kubectl -n windpark create job --from=cronjob/maintenance-report "maintenance-start-$(date +%s)" >/dev/null
 log "Wind park with faults ready"

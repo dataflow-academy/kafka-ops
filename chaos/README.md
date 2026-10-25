@@ -40,5 +40,5 @@ and `sudo` once (a stopped k3s agent can only be started on the node).
 The scripts do not depend on the design the group chose, except for the numbers it asks for: three or more brokers
 (the experiment topics have three replicas), an odd number of at least three controllers, and the
 `strimzi.io/pool-name` labels `broker` and `controller` of the design skeleton. `check.sh` counts the pods the node pools ask for.
-The node failure and the topic of team Alarme need one broker and one controller per node; with the reference design
+The node failure and the topic of team Alerts need one broker and one controller per node; with the reference design
 (`cluster/prepare.sh`) that is the case, a design without spreading may break it.

@@ -11,10 +11,10 @@ Material for the governance lab: rules the cluster enforces itself, and the pack
 | `policies/topic-limits.yaml` | at least three replicas, at most 24 partitions, `min.insync.replicas` below the replication factor |
 | `examples/` | KafkaTopic resources that the policies must accept or reject (`kubectl apply --dry-run=server -f`); `grandfathered.yaml` breaks the convention and carries the label |
 | `quota-test.yaml` | a topic of its own for the quota measurement (never write test load into live topics) |
-| `alerts-topic.yaml` | the topic team Alarme should have had (follows the convention, three replicas) |
+| `alerts-topic.yaml` | the topic team Alerts should have had (follows the convention, three replicas) |
 | `migrate-alerts.sh` | copies the alerts of `windpark_alerts` into the new topic; a second run copies only what arrived since |
 | `orphans.sh` | topics that exist in Kafka but have no `KafkaTopic` resource |
-| `paket.md` | the governance package to fill in |
+| `package.md` | the governance package to fill in |
 
 The policies skip a `KafkaTopic` that is being deleted: the topic operator removes its finalizer with an update, and a
 policy that refuses it would leave the resource in `Terminating` for good. A policy needs a few seconds after it has

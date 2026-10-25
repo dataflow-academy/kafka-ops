@@ -31,15 +31,11 @@ class BadThingsTest(unittest.TestCase):
                 self.assertTrue(marker)
                 self.assertNotIn(failure, result.stdout)
 
-    def test_rescue_skeleton_is_editable_yaml_with_a_pinned_image(self):
-        with tempfile.TemporaryDirectory() as directory:
-            result = subprocess.run(['bash', str(ROOT / 'chaos/rescue-skeleton.sh')],
-                                    env=dict(os.environ, HOME=directory), text=True, capture_output=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            text = (Path(directory) / 'rescue.yaml').read_text()
-            self.assertIn('claimName: data-0-nordwind-kafka-broker-N', text)
-            self.assertIn('image: rancher/mirrored-library-busybox:1.37.0', text)
-            self.assertNotIn('${', text)
+    def test_rescue_pod_is_editable_yaml_with_a_pinned_image(self):
+        text = (ROOT / 'chaos/rescue-pod.yaml').read_text()
+        self.assertIn('claimName: data-0-nordwind-kafka-broker-N', text)
+        self.assertIn('image: rancher/mirrored-library-busybox:1.37.0', text)
+        self.assertNotIn('${', text)
 
     def test_failed_injection_is_not_marked_as_started(self):
         for number in (1, 2, 3):

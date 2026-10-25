@@ -1,4 +1,4 @@
-# Team Alarme with its own topic (F3), applied on top of the healthy wind park: the state after the lab
+# Team Alerts with its own topic (F3), applied on top of the healthy wind park: the state after the lab
 # "Helping the dev teams" keeps this fault until the governance lab.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: alarme-config
+  name: alerts-config
   namespace: windpark
   labels:
     app.kubernetes.io/part-of: wind-park
