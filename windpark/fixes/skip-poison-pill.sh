@@ -5,6 +5,7 @@
 . "$(dirname "$0")/../../lib/common.sh"
 need kubectl
 NS="$KAFKA_NAMESPACE"
+ensure_tools
 TOPIC=telemetry
 declare -A replicas=([control-room]=2 [forecast]=1 [billing]=1)
 

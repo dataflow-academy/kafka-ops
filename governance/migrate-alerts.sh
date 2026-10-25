@@ -10,7 +10,9 @@ OLD=windpark_alerts
 NEW=nordwind.alerts.public.windpark-alert.event
 STATE="$HOME/.alerts-copied"
 kt() { kubectl -n "$NS" exec -i deploy/kafka-tools -- "$@"; }
-kt kafka-topics.sh --bootstrap-server "$BS" --describe --topic "$NEW" >/dev/null 2>&1 || die "The new topic $NEW does not exist yet. Apply alerts-topic.yaml first."
+ensure_tools
+# The Topic Operator needs a moment to create the topic after kubectl apply.
+wait_for "the new topic $NEW" 90 kt kafka-topics.sh --bootstrap-server "$BS" --describe --topic "$NEW" || die "The new topic $NEW does not exist yet. Apply alerts-topic.yaml first."
 kt kafka-topics.sh --bootstrap-server "$BS" --describe --topic "$OLD" >/dev/null 2>&1 || die "The old topic $OLD is already gone, there is nothing left to copy."
 from=$(cat "$STATE" 2>/dev/null || echo 0)
 end=$(kt kafka-get-offsets.sh --bootstrap-server "$BS" --topic "$OLD" --time latest | awk -F: '{s+=$3} END {print s+0}')
