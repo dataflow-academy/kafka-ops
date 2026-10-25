@@ -1,12 +1,11 @@
 # A pod with the Kafka command line tools (kafka-topics.sh, kafka-consumer-groups.sh, ...), always on
-# node1 so that it survives the failure of the other nodes. The lab VMs carry no Kafka installation:
-#   kubectl exec -i deploy/kafka-tools -- kafka-topics.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --list
-# ${...} placeholders come from ../versions.env (see prepare.sh).
+# node1 so that it survives the failure of the other nodes. Use it where you want to stand INSIDE the cluster:
+#   kubectl exec -i deploy/kafka-tools -- kafka-topics.sh --bootstrap-server nordwind-kafka-kafka-bootstrap:9092 --list
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kafka-tools
-  namespace: ${KAFKA_NAMESPACE}
+  namespace: kafka
   labels: { app.kubernetes.io/name: kafka-tools }
 spec:
   replicas: 1
@@ -25,7 +24,7 @@ spec:
                   - { key: node-role.kubernetes.io/control-plane, operator: Exists }
       containers:
         - name: tools
-          image: quay.io/strimzi/kafka:${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}
+          image: quay.io/strimzi/kafka:1.1.0-kafka-4.2.1
           command: ["sleep", "infinity"]
           env:
             - { name: PATH, value: "/opt/kafka/bin:/usr/local/bin:/usr/bin:/bin" }
