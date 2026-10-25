@@ -3,5 +3,5 @@
 # Entry point of the incident. Keep the failure choice out of the participant commands and output.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-"$HERE/break.sh" P1
 touch "$HOME/.bad-things1-started"
+"$HERE/break.sh" P1

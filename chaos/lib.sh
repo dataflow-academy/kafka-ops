@@ -31,12 +31,24 @@ operator_up() {
   sleep 15
   nudge_podsets
 }
+# Scales the operator up and nudges the PodSets until the pod exists again (at most four minutes), so an incident
+# script ends as soon as the broker is back to fail.
+operator_up_until_pod() {
+  local pod="$1" start=$SECONDS
+  operator_scale 1
+  until kubectl -n "$NS" get pod "$pod" >/dev/null 2>&1; do
+    [ $((SECONDS - start)) -lt 240 ] || die "Timed out after 240s waiting for the operator to recreate $pod"
+    nudge_podsets; sleep 3
+  done
+}
 nudge_podsets() {
   local ps
   for ps in $(kubectl -n "$NS" get strimzipodset -o name 2>/dev/null); do
     kubectl -n "$NS" annotate "$ps" "training/nudge=$(date +%s)" --overwrite >/dev/null
   done
 }
+# Progress line of an incident script that says nothing about the failure: step <n> "<text>" (four steps).
+step() { printf '%s ... step %s/4\n' "$2" "$1"; }
 operator_scale() { kubectl -n "$NS" scale deployment/strimzi-cluster-operator --replicas="$1" >/dev/null; }
 broker_pod()     { echo "nordwind-kafka-broker-$1"; }
 node_of_pod()    { kubectl -n "$NS" get pod "$1" -o jsonpath='{.spec.nodeName}'; }
