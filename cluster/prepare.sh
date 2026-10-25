@@ -23,9 +23,8 @@ kubectl -n "$KAFKA_NAMESPACE" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Read
 cp "$HERE/kafka.yaml" "$HOME/nordwind-kafka-reference.yaml"
 [ -e "$HOME/nordwind-kafka.yaml" ] || cp "$HOME/nordwind-kafka-reference.yaml" "$HOME/nordwind-kafka.yaml"
 
-# The Kafka command line tools live in their own pod from the second lab on (tools/, owned by the
-# day 2 material; present once that branch is merged).
-[ -x "$HERE/../tools/prepare.sh" ] && "$HERE/../tools/prepare.sh"
+# The pod with the Kafka command line tools for the places where the access from inside the cluster is the point.
+"$HERE/../tools/prepare.sh"
 
 # The self-check tests of the labs run as `ssh ... python3 tests.py` and find
 # the cluster through this file (see tests.py.erb in the labs repo).

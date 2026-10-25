@@ -23,7 +23,7 @@ spec:
         type: persistent-claim
         size: 5Gi
         kraftMetadata: shared
-        deleteClaim: true
+        deleteClaim: false
   resources:
     requests: { memory: 768Mi, cpu: 200m }
     limits: { memory: 1Gi }
@@ -61,7 +61,7 @@ spec:
         type: persistent-claim
         size: 20Gi
         kraftMetadata: shared
-        deleteClaim: true
+        deleteClaim: false
   resources:
     requests: { memory: 2Gi, cpu: "1" }
     limits: { memory: 3Gi }
