@@ -1,0 +1,19 @@
+# The monitoring stack in one go: kubectl apply -k ~/kafka-ops/monitoring
+namespace: kafka
+resources:
+  - prometheus.yaml
+  - kube-state-metrics.yaml
+  - grafana.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: dashboards-strimzi-kafka
+    files: [dashboards/strimzi-kafka.json]
+  - name: dashboards-strimzi-kraft
+    files: [dashboards/strimzi-kraft.json]
+  - name: dashboards-strimzi-kafka-exporter
+    files: [dashboards/strimzi-kafka-exporter.json]
+  - name: dashboards-strimzi-operators
+    files: [dashboards/strimzi-operators.json]
+  - name: dashboards-wind-park
+    files: [dashboards/wind-park.json]

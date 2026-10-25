@@ -65,7 +65,10 @@ spec:
         - name: dashboards
           projected:
             sources:
-              - configMap: { name: dashboards-strimzi }
+              - configMap: { name: dashboards-strimzi-kafka }
+              - configMap: { name: dashboards-strimzi-kraft }
+              - configMap: { name: dashboards-strimzi-kafka-exporter }
+              - configMap: { name: dashboards-strimzi-operators }
               - configMap: { name: dashboards-wind-park }
 ---
 apiVersion: v1
