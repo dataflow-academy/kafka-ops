@@ -28,5 +28,9 @@ curl -sfL "$url" -o "$file" || die "Download failed: $url"
 echo "$sha256  $file" | sha256sum -c --status || die "Checksum mismatch for $url"
 # The release file is written for the namespace "myproject".
 sed -i "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$file"
-kubectl apply -f "$file" >/dev/null
+if ! kubectl apply -f "$file" >/dev/null; then
+  # A CRD that is too large for the last-applied annotation of a client-side apply: let the server apply it.
+  log "kubectl apply failed, applying server-side"
+  kubectl apply --server-side --force-conflicts -f "$file" >/dev/null
+fi
 kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/strimzi-cluster-operator --timeout=180s
