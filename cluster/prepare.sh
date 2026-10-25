@@ -2,32 +2,30 @@
 # Start state "cluster installed": Strimzi operator plus a three-node Kafka
 # cluster (3 controllers, 3 brokers), Ready. Run it on node1. Idempotent.
 #
-# The operator install file is downloaded from the Strimzi release page with
-# the version and checksum pinned in versions.env. That is the same flow as
-# Strimzi's own documentation, so participants meet what they will meet in
-# production; the checksum protects against a changed or truncated download.
+# The operator comes from operator.sh (the release file of Strimzi 1.1.0, as in the
+# first lab); kafka.yaml names the Kafka version itself.
 . "$(dirname "$0")/../lib/common.sh"
-need kubectl; need curl; need envsubst
+need kubectl; need curl
 kube_ready || die "kubectl cannot reach the cluster. Run k3s/prepare.sh first."
 
-STRIMZI_URL="https://github.com/strimzi/strimzi-kafka-operator/releases/download/${STRIMZI_VERSION}/strimzi-cluster-operator-${STRIMZI_VERSION}.yaml"
-sha_var="STRIMZI_INSTALL_SHA256_${STRIMZI_VERSION//./_}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+"$HERE/operator.sh"
 
-log "Namespace ${KAFKA_NAMESPACE}"
-kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+# A leftover hello cluster would hold the NodePorts 31094-31097.
+"$ROOT/hello/reset.sh" >/dev/null 2>&1 || true
 
-log "Strimzi ${STRIMZI_VERSION}"
-tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
-curl -sfL "$STRIMZI_URL" -o "$tmp" || die "Download failed: $STRIMZI_URL"
-echo "${!sha_var}  $tmp" | sha256sum -c --status || die "Checksum mismatch for $STRIMZI_URL"
-# The release file is written for the namespace "myproject".
-sed "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$tmp" | kubectl apply --server-side --force-conflicts -n "$KAFKA_NAMESPACE" -f - >/dev/null
-kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/strimzi-cluster-operator --timeout=180s
-
-log "Kafka ${KAFKA_VERSION}"
-kubectl -n "$KAFKA_NAMESPACE" apply -f "$(dirname "$0")/metrics-config.yaml"
-apply_tpl "$(dirname "$0")/kafka.yaml" -n "$KAFKA_NAMESPACE"
+log "Kafka cluster ${KAFKA_CLUSTER}"
+kubectl apply -f "$HERE/kafka.yaml"
 kubectl -n "$KAFKA_NAMESPACE" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=600s
+
+# The reference design as a file, so that later labs (monitoring) can edit and apply
+# ~/nordwind-kafka.yaml on the catch-up path too. A design the group made itself is not touched.
+cp "$HERE/kafka.yaml" "$HOME/nordwind-kafka-reference.yaml"
+[ -e "$HOME/nordwind-kafka.yaml" ] || cp "$HOME/nordwind-kafka-reference.yaml" "$HOME/nordwind-kafka.yaml"
+
+# The Kafka command line tools live in their own pod from the second lab on (tools/, owned by the
+# day 2 material; present once that branch is merged).
+[ -x "$HERE/../tools/prepare.sh" ] && "$HERE/../tools/prepare.sh"
 
 # The self-check tests of the labs run as `ssh ... python3 tests.py` and find
 # the cluster through this file (see tests.py.erb in the labs repo).
