@@ -5,7 +5,7 @@
 . "$(dirname "$0")/../lib/common.sh"
 kube_ready || die "kubectl cannot reach the cluster."
 NS="$KAFKA_NAMESPACE"
-BS="my-cluster-kafka-bootstrap:9092"
+BS="nordwind-kafka-kafka-bootstrap:9092"
 OLD=windpark_alerts
 NEW=nordwind.alarme.public.windpark-alert.event
 STATE="$HOME/.alerts-copied"

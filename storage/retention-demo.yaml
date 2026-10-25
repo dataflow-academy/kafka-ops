@@ -4,7 +4,7 @@ kind: KafkaTopic
 metadata:
   name: nordwind-storage-retention
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster, training/experiment: storage }
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: storage }
 spec:
   topicName: nordwind.storage.private.retention-demo.event
   partitions: 1

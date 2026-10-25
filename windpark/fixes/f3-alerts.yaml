@@ -6,7 +6,7 @@ metadata:
   name: windpark-alerts
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
     app.kubernetes.io/part-of: wind-park
 spec:
   topicName: windpark_alerts
@@ -23,5 +23,5 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: windpark_alerts

@@ -23,7 +23,7 @@ done
 for pv in $(kubectl get pv -o name | sed 's|persistentvolume/||'); do
   dir=$(kubectl get pv "$pv" -o jsonpath='{.spec.hostPath.path}{.spec.local.path}')
   claim=$(kubectl get pv "$pv" -o jsonpath='{.spec.claimRef.name}')
-  [[ "$claim" == data-0-my-cluster-broker-* ]] || continue
+  [[ "$claim" == data-0-nordwind-kafka-broker-* ]] || continue
   pod="${claim#data-0-}"
   # which node holds the directory: the node affinity of the volume, else where the pod ran
   node=$(kubectl get pv "$pv" -o jsonpath='{.spec.nodeAffinity.required.nodeSelectorTerms[0].matchExpressions[0].values[0]}')
@@ -47,8 +47,8 @@ kubectl -n "$NS" delete configmap chaos-state --ignore-not-found >/dev/null
 
 log "Waiting for the cluster"
 wait_for "Kafka Ready" 600 kubectl -n "$NS" wait "kafka/$KAFKA_CLUSTER" --for=condition=Ready --timeout=5s
-kubectl -n "$NS" get deploy my-cluster-entity-operator -o json | jq -e '.spec.template.spec.containers[]|select(.name=="topic-operator")|.env[]|select(.name=="STRIMZI_NAMESPACE" and .value=="default")' >/dev/null 2>&1 \
-  && wait_for "topic operator back in $NS" 300 bash -c "! kubectl -n $NS get deploy my-cluster-entity-operator -o json | jq -e '.spec.template.spec.containers[]|select(.name==\"topic-operator\")|.env[]|select(.name==\"STRIMZI_NAMESPACE\" and .value==\"default\")'"
+kubectl -n "$NS" get deploy nordwind-kafka-entity-operator -o json | jq -e '.spec.template.spec.containers[]|select(.name=="topic-operator")|.env[]|select(.name=="STRIMZI_NAMESPACE" and .value=="default")' >/dev/null 2>&1 \
+  && wait_for "topic operator back in $NS" 300 bash -c "! kubectl -n $NS get deploy nordwind-kafka-entity-operator -o json | jq -e '.spec.template.spec.containers[]|select(.name==\"topic-operator\")|.env[]|select(.name==\"STRIMZI_NAMESPACE\" and .value==\"default\")'"
 wait_for "all pods ready" 600 bash -c "! kubectl -n $NS get pods -l strimzi.io/cluster=$KAFKA_CLUSTER --no-headers | grep -v ' 1/1\| 2/2'"
 ensure_tools
 wait_for "no under-replicated partitions" 300 bash -c "[ \"\$(kubectl -n $NS exec deploy/kafka-tools -- kafka-topics.sh --bootstrap-server $BOOTSTRAP --describe --under-replicated-partitions 2>/dev/null | grep -c Topic)\" = 0 ]"

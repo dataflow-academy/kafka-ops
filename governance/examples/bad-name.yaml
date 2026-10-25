@@ -3,7 +3,7 @@ kind: KafkaTopic
 metadata:
   name: nordwind-demo-bad-name
   namespace: kafka
-  labels: { strimzi.io/cluster: my-cluster }
+  labels: { strimzi.io/cluster: nordwind-kafka }
 spec:
   topicName: Sensor_Readings
   partitions: 6

@@ -4,7 +4,7 @@ metadata:
   name: nordwind-demo-grandfathered
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
     governance.nordwind/grandfathered: "true"
 spec:
   topicName: demo_before_the_convention
