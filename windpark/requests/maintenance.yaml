@@ -1,0 +1,15 @@
+# Team Maintenance: the topic for the reports of the technicians.
+# Replace every TODO with your decision from the chat, then apply the file with `kubectl apply -f`.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: TODO                      # the name you agreed on with the maintenance team
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  partitions: TODO
+  replicas: 3
+  config:
+    min.insync.replicas: "TODO"
+    retention.ms: "TODO"          # milliseconds

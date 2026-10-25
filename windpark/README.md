@@ -20,7 +20,7 @@ Two plain manifests hold the whole wind park, ordered by team (ConfigMap and wor
 The images are public, `ghcr.io/dataflow-academy/...:<commit sha>`, pinned in the files. All resources carry their own
 namespace (`windpark`, or `kafka` for the KafkaTopic of team Alerts).
 
-`requests/topics.yaml` is the file participants fill in for the topics of the four onboarding requests (they edit it where it lives).
+`requests/scada.yaml`, `assets.yaml` and `maintenance.yaml` are the files participants fill in for the topics of the onboarding requests, one file per team (the control room needs no topic of its own); they edit them where they live.
 `prepare.sh` creates those topics if they do not exist yet (with the grandfathering label of the governance lab
 when its naming policy is active). Participants create them themselves in the onboarding lab.
 
