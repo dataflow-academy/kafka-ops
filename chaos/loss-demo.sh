@@ -25,7 +25,15 @@ trap restore EXIT
 
 before=$(kt kafka-get-offsets.sh --bootstrap-server "$BOOTSTRAP" --topic "$topic" --time latest | awk -F: '{s+=$3} END {print s+0}')
 log "Cutting off the followers on ${nodes[*]}"
-for n in "${nodes[@]}"; do on_node "$n" 'iptables -t raw -I PREROUTING 1 -p tcp --dport 9091 -j DROP; iptables -t raw -I PREROUTING 1 -p tcp --sport 9091 -j DROP' >/dev/null; done
+# The helper pod that sets the rules can fail on the first try (image pull, attach); without the cut the demo would
+# lose nothing and teach the wrong thing. So every node is checked, and set again until the rules are there.
+for n in "${nodes[@]}"; do
+  for attempt in 1 2 3 4 5; do
+    on_node "$n" 'iptables -t raw -C PREROUTING -p tcp --dport 9091 -j DROP 2>/dev/null || { iptables -t raw -I PREROUTING 1 -p tcp --dport 9091 -j DROP; iptables -t raw -I PREROUTING 1 -p tcp --sport 9091 -j DROP; }; iptables -t raw -C PREROUTING -p tcp --sport 9091 -j DROP && echo CUT-OK' | grep -q CUT-OK && break
+    [ "$attempt" -lt 5 ] || die "Could not cut off the replication on $n."
+    sleep 2
+  done
+done
 
 a=$acks; [ "$a" = all ] && a=-1
 out=$(mktemp)
