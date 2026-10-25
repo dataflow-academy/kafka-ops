@@ -14,13 +14,13 @@ spec:
       restartPolicy: Never
       containers:
         - name: perf
-          image: quay.io/strimzi/kafka:${STRIMZI_VERSION}-kafka-${KAFKA_VERSION}
+          image: quay.io/strimzi/kafka:1.1.0-kafka-4.2.1
           command: [sh, -c]
           args:
             - >-
               bin/kafka-producer-perf-test.sh --topic ${PERF_NAME}
               --num-records ${PERF_RECORDS} --record-size ${PERF_RECORD_SIZE} --throughput ${PERF_THROUGHPUT}
-              --producer-props bootstrap.servers=${KAFKA_CLUSTER}-kafka-bootstrap:9092 ${PERF_PRODUCER_PROPS}
+              --producer-props bootstrap.servers=my-cluster-kafka-bootstrap:9092 ${PERF_PRODUCER_PROPS}
           resources:
             requests: { cpu: 500m, memory: 512Mi }
             limits: { memory: 1Gi }

@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-# Installs a Strimzi operator release into the namespace `kafka`. Run it on node1. Idempotent.
+# Installs a Strimzi operator release into the namespace `kafka`, the same steps as the first lab: download the
+# release file to ~/strimzi-<version>.yaml, set the namespace with sed, kubectl apply. Run it on node1. Idempotent.
 #
-#   ./operator.sh [version]     default: STRIMZI_VERSION from versions.env
+#   ./operator.sh [version]     default 1.1.0, the release the labs start with; the upgrade lab passes 1.2.0
 #
-# cluster/prepare.sh and hello/prepare.sh call it without an argument; the upgrade and the ZooKeeper
-# migration labs pass the release they need. A version without a checksum in versions.env is refused.
-#
-# The install file is downloaded from the Strimzi release page with the version and checksum pinned in
-# versions.env. That is the flow of Strimzi's own documentation, so participants meet what they will meet
-# in production; the checksum protects against a changed or truncated download.
+# The checksum protects against a changed or truncated download; a version without one below is refused.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl; need curl
 kube_ready || die "kubectl cannot reach the cluster. Run k3s/prepare.sh first."
 
-version="${1:-$STRIMZI_VERSION}"
-STRIMZI_URL="https://github.com/strimzi/strimzi-kafka-operator/releases/download/${version}/strimzi-cluster-operator-${version}.yaml"
-sha_var="STRIMZI_INSTALL_SHA256_${version//./_}"
-[ -n "${!sha_var:-}" ] || die "No checksum for Strimzi ${version} in versions.env (${sha_var}). Add it before installing."
+version="${1:-1.1.0}"
+case "$version" in
+  1.1.0) sha256=ee7e38d61452fb7b3be08a3b0fb4497ee0e38d50eb38f41fa4c2276078f68fd0 ;;
+  1.2.0) sha256=a0b1ae3e375a7da0674eb3894df8aa955bc50abe8190bc9344e30b83bbee4775 ;;
+  *) die "No checksum for Strimzi ${version} in $0. Add it before installing." ;;
+esac
+url="https://github.com/strimzi/strimzi-kafka-operator/releases/download/${version}/strimzi-cluster-operator-${version}.yaml"
+file="$HOME/strimzi-${version}.yaml"
 
 log "Namespace ${KAFKA_NAMESPACE}"
-kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f - >/dev/null
 
 log "Strimzi ${version}"
-tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
-curl -sfL "$STRIMZI_URL" -o "$tmp" || die "Download failed: $STRIMZI_URL"
-echo "${!sha_var}  $tmp" | sha256sum -c --status || die "Checksum mismatch for $STRIMZI_URL"
+curl -sfL "$url" -o "$file" || die "Download failed: $url"
+echo "$sha256  $file" | sha256sum -c --status || die "Checksum mismatch for $url"
 # The release file is written for the namespace "myproject".
-sed "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$tmp" | kubectl apply --server-side --force-conflicts -n "$KAFKA_NAMESPACE" -f - >/dev/null
+sed -i "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$file"
+kubectl apply -f "$file" >/dev/null
 kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/strimzi-cluster-operator --timeout=180s

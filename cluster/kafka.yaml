@@ -1,13 +1,14 @@
 # Kafka cluster, KRaft, three controllers and three brokers on three nodes.
 # auto.create.topics.enable stays at the Kafka default (true) on purpose.
 # No metrics here: the monitoring lab switches them on (monitoring/prepare.sh), which rolls the cluster.
-# ${...} placeholders come from ../versions.env (see prepare.sh).
+# Kafka 4.2.1 on Strimzi 1.1.0: one minor below the newest, so that the upgrade lab has a real step to take.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
 metadata:
   name: controller
+  namespace: kafka
   labels:
-    strimzi.io/cluster: ${KAFKA_CLUSTER}
+    strimzi.io/cluster: my-cluster
   annotations:
     # Fixed node ids: brokers 0-2, controllers 100-102.
     strimzi.io/next-node-ids: "[100-102]"
@@ -44,8 +45,9 @@ apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
 metadata:
   name: broker
+  namespace: kafka
   labels:
-    strimzi.io/cluster: ${KAFKA_CLUSTER}
+    strimzi.io/cluster: my-cluster
   annotations:
     strimzi.io/next-node-ids: "[0-2]"
 spec:
@@ -83,11 +85,12 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
-  name: ${KAFKA_CLUSTER}
+  name: my-cluster
+  namespace: kafka
 spec:
   kafka:
-    version: ${KAFKA_VERSION}
-    metadataVersion: ${KAFKA_METADATA_VERSION}
+    version: 4.2.1
+    metadataVersion: 4.2-IV1
     # The node name becomes broker.rack, so replicas spread over the nodes.
     rack:
       topologyKey: kubernetes.io/hostname

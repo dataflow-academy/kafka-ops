@@ -8,7 +8,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kube-state-metrics-${KAFKA_NAMESPACE}
+  name: kube-state-metrics-kafka
 rules:
   - apiGroups: [""]
     resources: [pods, nodes, namespaces]
@@ -23,15 +23,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kube-state-metrics-${KAFKA_NAMESPACE}
+  name: kube-state-metrics-kafka
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kube-state-metrics-${KAFKA_NAMESPACE}
+  name: kube-state-metrics-kafka
 subjects:
   - kind: ServiceAccount
     name: kube-state-metrics
-    namespace: ${KAFKA_NAMESPACE}
+    namespace: kafka
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -49,7 +49,7 @@ spec:
       serviceAccountName: kube-state-metrics
       containers:
         - name: kube-state-metrics
-          image: registry.k8s.io/kube-state-metrics/kube-state-metrics:${KUBE_STATE_METRICS_VERSION}
+          image: registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.19.0
           args:
             - --resources=pods,deployments,jobs,cronjobs,nodes
           ports:
