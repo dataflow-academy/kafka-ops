@@ -56,7 +56,10 @@ data:
           - source_labels: [__meta_kubernetes_pod_container_port_name]
             regex: tcp-prometheus
             action: keep
-          #LAB:EXPORTER-DROP
+          # The Kafka Exporter has its own job further down.
+          - source_labels: [__meta_kubernetes_pod_label_strimzi_io_name]
+            regex: .*-kafka-exporter
+            action: drop
           - regex: __meta_kubernetes_pod_label_(strimzi_io_.+)
             action: labelmap
             replacement: $1
