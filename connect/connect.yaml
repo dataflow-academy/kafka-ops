@@ -1,5 +1,5 @@
 # The solution of the Connect lab: Kafka Connect with the image built by Strimzi inside the cluster.
-# `skeleton.sh` writes connect-frame.yaml with the version filled in; this file is the finished result.
+# connect-frame.yaml is the starting point; this file is the finished result.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnect
 metadata:
@@ -9,9 +9,9 @@ metadata:
     # Connectors are KafkaConnector resources, not calls to the REST API.
     strimzi.io/use-connector-resources: "true"
 spec:
-  version: ${KAFKA_VERSION}
+  version: 4.2.1
   replicas: 1
-  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  bootstrapServers: nordwind-kafka-kafka-bootstrap:9092
   groupId: nordwind-connect
   offsetStorageTopic: nordwind-connect-offsets
   configStorageTopic: nordwind-connect-configs

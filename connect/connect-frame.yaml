@@ -1,5 +1,5 @@
-# Frame for the Connect lab. `skeleton.sh` writes it to ~/connect.yaml with the version filled in.
-# Fill in every TODO, then `kubectl apply -f ~/connect.yaml`. The build does not succeed on the first try.
+# Frame for the Connect lab: copy it to ~/connect.yaml, fill in every TODO and apply it with `kubectl apply -f`.
+# The build does not succeed on the first try.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnect
 metadata:
@@ -8,9 +8,9 @@ metadata:
   annotations:
     strimzi.io/use-connector-resources: "true"
 spec:
-  version: ${KAFKA_VERSION}
+  version: 4.2.1
   replicas: 1
-  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  bootstrapServers: nordwind-kafka-kafka-bootstrap:9092
   groupId: nordwind-connect
   offsetStorageTopic: nordwind-connect-offsets
   configStorageTopic: nordwind-connect-configs

@@ -1,4 +1,4 @@
-# Frame for the polling connector. Connection and topic are given; how the connector finds new rows is yours.
+# Frame for the polling connector: copy it to ~/jdbc-source.yaml. Connection and topic are given; how the connector finds new rows is yours.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnector
 metadata:

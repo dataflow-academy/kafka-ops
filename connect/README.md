@@ -1,8 +1,11 @@
 # Kafka Connect with an image built by Strimzi
 
-Start state (`prepare.sh`): the Kafka cluster is open and Ready, a registry runs in the cluster (namespace `registry`),
+Start state: the Kafka cluster `nordwind-kafka` is open and Ready, a registry runs in the cluster (namespace `registry`),
 every node can pull from it, a PostgreSQL database (`wartung-db`, table `work_orders`, eight rows) and the topic
-`nordwind.maintenance.private.work-orders.state` exist. No Kafka Connect, no connectors.
+`nordwind.maintenance.private.work-orders.state` exist. No Kafka Connect, no connectors. The lab gets there by applying
+`registry.yaml`, `postgres.yaml` and `topic.yaml` itself; `prepare.sh` does the same in one step (rescue path, also removes
+leftovers) and works on the reference cluster as well as on the participants' own, smaller one (plain listener on 9092,
+three brokers).
 
 | File | Purpose |
 |---|---|
@@ -10,7 +13,7 @@ every node can pull from it, a PostgreSQL database (`wartung-db`, table `work_or
 | `registry-mirror.sh` | Tries a real pull on every node and adds the containerd mirror for `registry.registry.svc:5000` to `/etc/rancher/k3s/registries.yaml` where it fails. The lab VMs have the entry already |
 | `postgres.yaml` | The database of the maintenance team, `wal_level=logical`, credentials `wartung`/`wartung` |
 | `topic.yaml` | The topic for the work orders (one partition, three replicas) |
-| `skeleton.sh` | Writes `~/connect.yaml` (from `connect-frame.yaml`) and `~/jdbc-source.yaml` (from `jdbc-source-frame.yaml`) |
+| `connect-frame.yaml`, `jdbc-source-frame.yaml` | The starting points: the lab copies them to `~/connect.yaml` and `~/jdbc-source.yaml` and fills in the TODOs |
 | `connect.yaml` | The solution: `KafkaConnect` with `spec.build`, the JDBC plugin pinned by sha512, AppArmor profile of the build container, plain-HTTP push |
 | `jdbc-source.yaml` | The solution: polling with an incrementing id |
 | `debezium-source.yaml` | Change data capture; needs the Debezium plugin in the image (see the lab's "Going deeper") |
