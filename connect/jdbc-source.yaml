@@ -1,4 +1,4 @@
-# Working file for the polling connector. Connection and topic are given; how the connector finds new rows is yours.
+# Working file for the polling connector (jdbc-source-frame.yaml is its pristine copy, reset.sh restores it). Connection and topic are given; how the connector finds new rows is yours.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnector
 metadata:
