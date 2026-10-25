@@ -34,5 +34,11 @@ Do not stack incidents: recover and verify the cluster before starting the next 
 | P5 | the replication port of a node is dropped by iptables | ISR shrinks, under-replicated partitions |
 | P6 | operator and topic operator watch the wrong namespace | a new `KafkaTopic` never gets a status |
 
-`break.sh` needs neither ssh nor sudo: it works through short-lived privileged pods. `heal.sh` needs `ssh nodeN`
-and `sudo` once (a stopped k3s agent can only be started on the node); it asks for the sudo password if needed.
+`break.sh` needs neither ssh nor sudo: it works through short-lived privileged pods. `heal.sh` needs `ssh $IP.N`
+and `sudo` once (a stopped k3s agent can only be started on the node).
+
+The scripts do not depend on the design the group chose, except for the numbers it asks for: three or more brokers
+(the experiment topics have three replicas), an odd number of at least three controllers, and the
+`strimzi.io/pool-name` labels `broker` and `controller` of the design skeleton. `check.sh` counts the pods the node pools ask for.
+The node failure and the topic of team Alarme need one broker and one controller per node; with the reference design
+(`cluster/prepare.sh`) that is the case, a design without spreading may break it.
