@@ -15,5 +15,5 @@ from empty.
 | `prepare.sh` | all of the above plus the reference alerting rules |
 | `reset.sh` | removes what `install.sh` created, except Kafka UI |
 
-`rules.yml` holds the reference alerting rules, `rules-skeleton.yml` is the same file with the decisions left open
+`rules-reference.yml` holds the reference alerting rules, `rules.yml` is the same file with the decisions left open (the file the participants edit)
 (`for`, `severity`, threshold). Prometheus loads every `*.yml` of the ConfigMap `prometheus-rules`.
