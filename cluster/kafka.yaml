@@ -32,14 +32,14 @@ spec:
     "-Xmx": 384m
   template:
     pod:
-      # One controller per node.
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              strimzi.io/pool-name: controller
+      # One controller per node: their number does not grow, so the rule can be a requirement.
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  strimzi.io/pool-name: controller
 ---
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
