@@ -9,7 +9,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: prometheus-${KAFKA_NAMESPACE}
+  name: prometheus-kafka
 rules:
   - apiGroups: [""]
     resources: [nodes, nodes/metrics, nodes/proxy, services, endpoints, pods]
@@ -20,15 +20,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: prometheus-${KAFKA_NAMESPACE}
+  name: prometheus-kafka
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: prometheus-${KAFKA_NAMESPACE}
+  name: prometheus-kafka
 subjects:
   - kind: ServiceAccount
     name: prometheus
-    namespace: ${KAFKA_NAMESPACE}
+    namespace: kafka
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -44,7 +44,7 @@ data:
         metrics_path: /metrics
         kubernetes_sd_configs:
           - role: pod
-            namespaces: { names: [${KAFKA_NAMESPACE}] }
+            namespaces: { names: [kafka] }
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_strimzi_io_kind]
             regex: Kafka|KafkaConnect|KafkaMirrorMaker2
@@ -70,7 +70,7 @@ data:
       - job_name: strimzi-cluster-operator
         kubernetes_sd_configs:
           - role: pod
-            namespaces: { names: [${KAFKA_NAMESPACE}] }
+            namespaces: { names: [kafka] }
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_strimzi_io_kind]
             regex: cluster-operator
@@ -85,7 +85,7 @@ data:
       - job_name: strimzi-entity-operator
         kubernetes_sd_configs:
           - role: pod
-            namespaces: { names: [${KAFKA_NAMESPACE}] }
+            namespaces: { names: [kafka] }
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
             regex: entity-operator
@@ -135,7 +135,7 @@ spec:
       serviceAccountName: prometheus
       containers:
         - name: prometheus
-          image: quay.io/prometheus/prometheus:${PROMETHEUS_VERSION}
+          image: quay.io/prometheus/prometheus:v3.15.0
           args:
             - --config.file=/etc/prometheus/prometheus.yml
             - --storage.tsdb.path=/prometheus

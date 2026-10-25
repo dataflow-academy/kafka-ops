@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: docker.io/grafana/grafana:${GRAFANA_VERSION}
+          image: docker.io/grafana/grafana:13.2.3
           env:
             # Same credentials as the former Grafana on the VM: admin / admin, no login wall for the lab.
             - { name: GF_SECURITY_ADMIN_USER, value: admin }

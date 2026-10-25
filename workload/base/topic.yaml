@@ -3,7 +3,7 @@ kind: KafkaTopic
 metadata:
   name: nordwind.scada.public.turbine-telemetry-json.event
   labels:
-    strimzi.io/cluster: ${KAFKA_CLUSTER}
+    strimzi.io/cluster: my-cluster
 spec:
   partitions: 6
   replicas: 3

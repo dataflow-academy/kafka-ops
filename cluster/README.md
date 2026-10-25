@@ -1,7 +1,7 @@
 # Strimzi and the Kafka cluster
 
 `prepare.sh` installs the pinned Strimzi release into the namespace `kafka` (the release's install file,
-downloaded from the project's release page and checked against the sha256 in `versions.env`) and creates
+downloaded from the project's release page and checked against the sha256 written in `prepare.sh`) and creates
 the Kafka cluster `my-cluster` from `kafka.yaml`:
 
 * KRaft, API `kafka.strimzi.io/v1`, `KafkaNodePool`s `controller` (ids 100-102) and `broker` (ids 0-2)

@@ -15,7 +15,3 @@ jobs:
           for overlay in healthy training; do
             kubectl kustomize workload/overlays/$overlay > /dev/null
           done
-      - name: Only versions.env pins versions
-        run: |
-          # Image tags and release numbers belong in versions.env; manifests use ${VARIABLES}.
-          ! grep -rnE 'image: .*:[0-9v][0-9.]+' --include='*.yaml' . 

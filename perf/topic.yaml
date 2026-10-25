@@ -3,7 +3,7 @@ kind: KafkaTopic
 metadata:
   name: ${PERF_NAME}
   labels:
-    strimzi.io/cluster: ${KAFKA_CLUSTER}
+    strimzi.io/cluster: my-cluster
     app.kubernetes.io/part-of: perf
 spec:
   partitions: ${PERF_PARTITIONS}

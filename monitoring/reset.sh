@@ -3,8 +3,8 @@
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
 kube_ready || { echo "No cluster reachable, nothing to reset."; exit 0; }
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 for f in prometheus grafana kafka-ui; do
-  render "$f.yaml" | kubectl -n "$KAFKA_NAMESPACE" delete --ignore-not-found -f - 2>/dev/null || true
+  kubectl -n "$KAFKA_NAMESPACE" delete --ignore-not-found -f "$f.yaml" 2>/dev/null || true
 done
 kubectl -n "$KAFKA_NAMESPACE" delete configmap dashboards-strimzi dashboards-wind-park --ignore-not-found

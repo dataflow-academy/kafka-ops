@@ -16,7 +16,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: consumer
-          image: ${WIND_IMAGE_REGISTRY}/java/wind-turbine-consumer-json:${WIND_IMAGE_TAG}
+          image: ${WIND_IMAGE_REGISTRY}/java/wind-turbine-consumer-json:033586af85b456738e194e1429c28e478a7136a9
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef: { name: wind-consumer-config }

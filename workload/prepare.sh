@@ -4,13 +4,13 @@
 #
 #   ./prepare.sh [overlay]     overlay = training (default, with the faults) | healthy | after-<lab> | your own
 #
-# The images come from the registry configured in versions.env, pinned by commit
-# SHA in versions.env. The nodes need pull credentials (k3s registries.yaml);
+# The images come from the registry the lab VM names in /etc/kafka-ops.env, pinned by
+# commit SHA in the manifests. The nodes need pull credentials (k3s registries.yaml);
 # without them the pods stay in ImagePullBackOff. For tests without access,
 # STAGE_IMAGES_FROM=<dir with the application sources> builds the same images on this
 # node and imports them into k3s on all nodes under the pinned names.
 . "$(dirname "$0")/../lib/common.sh"
-need kubectl; need envsubst
+need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
 kubectl -n "$KAFKA_NAMESPACE" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || die "Kafka cluster is missing. Run cluster/prepare.sh first."
 
@@ -23,7 +23,7 @@ NODES="${NODES:-1 2 3}"
 if [ -n "${STAGE_IMAGES_FROM:-}" ]; then
   need docker
   for app in producer consumer; do
-    image="${WIND_IMAGE_REGISTRY}/java/wind-turbine-${app}-json:${WIND_IMAGE_TAG}"
+    image="${WIND_IMAGE_REGISTRY}/java/wind-turbine-${app}-json:$(sed -n "s|.*wind-turbine-${app}-json:||p" "$HERE/base/${app}.yaml")"
     log "Test stopgap: building $image"
     docker build -q -t "$image" "$STAGE_IMAGES_FROM/java/${app}-json" >/dev/null
     for n in $NODES; do
@@ -33,7 +33,8 @@ if [ -n "${STAGE_IMAGES_FROM:-}" ]; then
 fi
 
 log "Workload (${OVERLAY})"
-kubectl kustomize "$HERE/overlays/$OVERLAY" | render /dev/stdin | kubectl -n "$KAFKA_NAMESPACE" apply --prune -l app.kubernetes.io/part-of=wind-park \
+# The registry is not part of this repository: the manifests say ${WIND_IMAGE_REGISTRY}.
+kubectl kustomize "$HERE/overlays/$OVERLAY" | sed "s|\${WIND_IMAGE_REGISTRY}|$WIND_IMAGE_REGISTRY|g" | kubectl -n "$KAFKA_NAMESPACE" apply --prune -l app.kubernetes.io/part-of=wind-park \
   --prune-allowlist=core/v1/ConfigMap --prune-allowlist=apps/v1/Deployment -f -
 kubectl -n "$KAFKA_NAMESPACE" wait kafkatopic/nordwind.scada.public.turbine-telemetry-json.event --for=condition=Ready --timeout=120s
 kubectl -n "$KAFKA_NAMESPACE" get pods -l app.kubernetes.io/part-of=wind-park
