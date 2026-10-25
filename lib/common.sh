@@ -10,19 +10,6 @@ KAFKA_NAMESPACE=kafka
 KAFKA_CLUSTER=nordwind-kafka
 export KAFKA_NAMESPACE KAFKA_CLUSTER
 
-# Integration only (modules not yet reworked still use placeholders): versions.env and the render helpers.
-# shellcheck disable=SC1091
-. "$ROOT/versions.env"
-VERSION_VARS="$(sed -n 's/^\([A-Z0-9_]*\)=.*/${\1}/p' "$ROOT/versions.env" | paste -sd' ' -)"
-render() {
-  set -a
-  # shellcheck disable=SC1091
-  . "$ROOT/versions.env"
-  set +a
-  envsubst "$VERSION_VARS" < "$1"
-}
-apply_tpl() { render "$1" | kubectl apply "${@:2}" -f -; }
-
 # Tests from outside the VMs set NODE_SSH to a wrapper that reaches every node.
 TEST_WRAPPER="${NODE_SSH:-}"
 NODE_SSH="${NODE_SSH:-ssh}"
