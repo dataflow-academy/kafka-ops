@@ -39,15 +39,3 @@ groups:
         labels: { severity: ticket }
         annotations:
           summary: A consumer group is more than the threshold behind (the threshold is in seconds)
-      - alert: PodCrashLooping
-        expr: increase(kube_pod_container_status_restarts_total{namespace="windpark"}[15m]) > 2
-        for: 5m
-        labels: { severity: ticket }
-        annotations:
-          summary: A pod of a team restarts again and again
-      - alert: JobFailed
-        expr: kube_job_status_failed{namespace="windpark"} > 0
-        for: 1m
-        labels: { severity: ticket }
-        annotations:
-          summary: A job of a team has failed
