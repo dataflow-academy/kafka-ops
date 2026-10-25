@@ -16,7 +16,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetry
   TICK_INTERVAL_MS: "250"
   KAFKA_ACKS: "1"
@@ -87,7 +87,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TURBINE_REGISTRY_TOPIC: turbine-registry
   PARK_REGISTRY_TOPIC: park-registry
   KAFKA_REQUEST_TIMEOUT_MS: "5000"
@@ -154,7 +154,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetry
   GROUP_ID: leitwarte
   JAVA_OPTS: -XX:MaxRAMPercentage=70
@@ -220,7 +220,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetery
   GROUP_ID: abrechnung
   KAFKA_GROUP_PROTOCOL: classic
@@ -286,7 +286,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetry
   GROUP_ID: prognose
   JAVA_OPTS: -XX:MaxRAMPercentage=70
@@ -353,7 +353,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: telemetry
   TURBINE: alpha-ventus-07
   POWER_KW: "n/a"
@@ -435,7 +435,7 @@ metadata:
   name: windpark-alerts
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
     app.kubernetes.io/part-of: wind-park
 spec:
   topicName: windpark_alerts
@@ -452,7 +452,7 @@ metadata:
   labels:
     app.kubernetes.io/part-of: wind-park
 data:
-  BOOTSTRAP_SERVERS: my-cluster-kafka-bootstrap.kafka.svc:9092
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
   TOPIC: windpark_alerts
 ---
 apiVersion: apps/v1

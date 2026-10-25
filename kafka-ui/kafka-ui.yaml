@@ -1,0 +1,55 @@
+# Kafka UI for the Kafka cluster in the namespace `kafka`, whichever runs: `hello` in the first lab, `nordwind-kafka` from
+# the second lab on. It connects through the Service `kafka-ui-bootstrap`, which selects the broker pods of any
+# Strimzi cluster in the namespace (a bootstrap name that does not resolve stops Kafka UI for every cluster).
+# NodePort 30800; the lab platform puts the login in front of it.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  namespace: kafka
+  labels: { app.kubernetes.io/name: kafka-ui }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: kafka-ui }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: kafka-ui }
+    spec:
+      containers:
+        - name: kafka-ui
+          image: ghcr.io/kafbat/kafka-ui:v1.5.0
+          env:
+            - { name: KAFKA_CLUSTERS_0_NAME, value: kafka }
+            - { name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS, value: "kafka-ui-bootstrap:9092" }
+            - { name: DYNAMIC_CONFIG_ENABLED, value: "false" }
+            - { name: JAVA_OPTS, value: "-Xmx384m" }
+          ports:
+            - { name: web, containerPort: 8080 }
+          readinessProbe:
+            httpGet: { path: /actuator/health, port: web }
+            initialDelaySeconds: 20
+          resources:
+            requests: { memory: 384Mi, cpu: 100m }
+            limits: { memory: 768Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  namespace: kafka
+spec:
+  type: NodePort
+  selector: { app.kubernetes.io/name: kafka-ui }
+  ports:
+    - { name: web, port: 8080, targetPort: web, nodePort: 30800 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui-bootstrap
+  namespace: kafka
+spec:
+  selector: { strimzi.io/broker-role: "true" }
+  ports:
+    - { name: plain, port: 9092, targetPort: 9092 }

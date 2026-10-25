@@ -3,7 +3,7 @@ kind: KafkaTopic
 metadata:
   name: ${PERF_NAME}
   labels:
-    strimzi.io/cluster: ${KAFKA_CLUSTER}
+    strimzi.io/cluster: nordwind-kafka
     app.kubernetes.io/part-of: perf
 spec:
   # The Kafka topic name follows the platform's naming convention; the resource name stays a plain Kubernetes name.

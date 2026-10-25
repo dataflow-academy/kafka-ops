@@ -1,8 +1,8 @@
-# Skeleton for the cluster design lab. `cluster/skeleton.sh` writes it to ~/my-cluster.yaml with the versions
-# from versions.env filled in; then replace every placeholder (the word in capitals) and `kubectl apply -f` the file.
+# Skeleton for the cluster design lab. Copy it to ~/nordwind-kafka.yaml (`cluster/skeleton.sh` does that), replace every
+# placeholder (the word in capitals) and `kubectl apply -f` the file.
 # As it stands the file is rejected: a placeholder is not a number.
 #
-# Fixed for the next days (do not rename): the cluster is called `my-cluster`, the node pools
+# Fixed for the next days (do not rename): the cluster is called `nordwind-kafka`, the node pools
 # `controller` and `broker`, everything lives in the namespace `kafka`.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
@@ -10,7 +10,7 @@ metadata:
   name: controller
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
   annotations:
     # Fixed node ids: controllers 100-102.
     strimzi.io/next-node-ids: "[100-102]"
@@ -49,7 +49,7 @@ metadata:
   name: broker
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
   annotations:
     strimzi.io/next-node-ids: "[0-2]"
 spec:
@@ -74,12 +74,12 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
-  name: my-cluster
+  name: nordwind-kafka
   namespace: kafka
 spec:
   kafka:
-    version: ${KAFKA_VERSION}
-    metadataVersion: ${KAFKA_METADATA_VERSION}
+    version: 4.2.1
+    metadataVersion: 4.2-IV1
     # The node name becomes broker.rack, so replicas of a partition spread over the nodes.
     rack:
       topologyKey: kubernetes.io/hostname
