@@ -1,50 +1,41 @@
-# Alerting rules for the platform team. The expressions (`expr`) are given; the decisions are yours.
-#
-#   alert:     the name of the alert
-#   expr:      the condition, written in PromQL. It is true while something is wrong.
-#   for:       how long the condition must hold before the alert fires, for example 5m. A short blip that
-#              disappears again within this time raises no alert.
-#   severity:  page   = wake somebody up
-#              ticket = look at it during working hours
-#
-# Replace every TODO. As it stands, Prometheus refuses to load this file.
+# Alerting rules for the platform team (the reference decisions of the monitoring lab).
+# for = how long the condition must hold; severity page = wake somebody, ticket = working hours.
 groups:
   - name: kafka-health
     rules:
       - alert: UnderReplicatedPartitions
         expr: sum(kafka_server_replicamanager_underreplicatedpartitions) > 0
-        for: TODO
-        labels: { severity: TODO }
+        for: 5m
+        labels: { severity: ticket }
         annotations:
           summary: Partitions have fewer in-sync replicas than replicas
       - alert: UnderMinIsrPartitions
         expr: sum(kafka_cluster_partition_underminisr) > 0
-        for: TODO
-        labels: { severity: TODO }
+        for: 1m
+        labels: { severity: page }
         annotations:
           summary: Partitions have fewer in-sync replicas than min.insync.replicas, writes with acks=all fail
       - alert: OfflinePartitions
         expr: sum(kafka_controller_kafkacontroller_offlinepartitionscount) > 0
-        for: TODO
-        labels: { severity: TODO }
+        for: 1m
+        labels: { severity: page }
         annotations:
           summary: Partitions have no leader
       - alert: NoSingleActiveController
         expr: sum(kafka_controller_kafkacontroller_activecontrollercount) != 1 or absent(kafka_controller_kafkacontroller_activecontrollercount)
-        for: TODO
-        labels: { severity: TODO }
+        for: 1m
+        labels: { severity: page }
         annotations:
           summary: The number of active controllers is not 1
   - name: dev-view
     rules:
       # Lag in seconds: how far behind is a group, measured in how long the topic takes to produce that many records.
-      # The threshold after `>` is in seconds.
       - alert: ConsumerGroupFallingBehind
         expr: |
           sum by (consumergroup, topic) (kafka_consumergroup_lag)
             / on (topic) group_left
-          sum by (topic) (rate(kafka_topic_partition_current_offset[2m])) > TODO
-        for: TODO
-        labels: { severity: TODO }
+          sum by (topic) (rate(kafka_topic_partition_current_offset[2m])) > 60
+        for: 5m
+        labels: { severity: ticket }
         annotations:
           summary: A consumer group is more than the threshold behind (the threshold is in seconds)
