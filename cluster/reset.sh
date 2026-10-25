@@ -17,6 +17,9 @@ kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic,kafkauser --all --ignore-not-fou
 kubectl -n "$KAFKA_NAMESPACE" delete kafka --all --wait=true --timeout=300s --ignore-not-found 2>/dev/null || true
 kubectl delete namespace "$KAFKA_NAMESPACE" --wait=true --timeout=300s --ignore-not-found
 
+log "Deleting the topic policies of the governance lab (cluster-wide)"
+kubectl delete validatingadmissionpolicybinding,validatingadmissionpolicy kafkatopic-naming kafkatopic-limits --ignore-not-found >/dev/null 2>&1 || true
+
 log "Deleting Strimzi CRDs and cluster-wide roles"
 kubectl get crd -o name | grep -E '\.strimzi\.io$' | xargs -r kubectl delete --ignore-not-found
 kubectl get clusterrole,clusterrolebinding -o name | grep -E 'strimzi' | xargs -r kubectl delete --ignore-not-found

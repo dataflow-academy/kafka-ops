@@ -43,7 +43,7 @@ groups:
         expr: |
           sum by (consumergroup, topic) (kafka_consumergroup_lag)
             / on (topic) group_left
-          sum by (topic) (rate(kafka_topic_partition_current_offset[2m])) > TODO
+          sum by (topic) (deriv(kafka_topic_partition_current_offset[2m])) > TODO
         for: TODO
         labels: { severity: TODO }
         annotations:
