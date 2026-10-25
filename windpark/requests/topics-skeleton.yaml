@@ -6,7 +6,7 @@ metadata:
   name: telemetry
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
 spec:
   partitions: TODO
   replicas: 3
@@ -20,7 +20,7 @@ metadata:
   name: turbine-registry
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
 spec:
   partitions: TODO
   replicas: 3
@@ -34,7 +34,7 @@ metadata:
   name: park-registry
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
 spec:
   partitions: TODO
   replicas: 3

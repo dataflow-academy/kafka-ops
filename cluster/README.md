@@ -2,7 +2,7 @@
 
 `prepare.sh` installs Strimzi 1.1.0 into the namespace `kafka` (the release's install file,
 downloaded from the project's release page by `operator.sh`, version and sha256 written there) and creates
-the Kafka cluster `my-cluster` from `kafka.yaml`:
+the Kafka cluster `nordwind-kafka` from `kafka.yaml`:
 
 * Kafka 4.2.1 (`version` and `metadataVersion` written in `kafka.yaml`), KRaft, API `kafka.strimzi.io/v1`, `KafkaNodePool`s `controller` (ids 100-102) and `broker` (ids 0-2)
 * one controller per node (`topologySpreadConstraints`), brokers spread by a *preferred* pod anti-affinity (a fourth broker still schedules; `skeleton.yaml`, the start of the design lab, leaves it out on purpose and the lab adds it as an extra task), the node name is the broker's rack

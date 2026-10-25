@@ -12,7 +12,7 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`k3s/`](k3s) | the latest k3s on three nodes (server on node1, agents on node2 and node3), kubeconfig for `user` with the namespace `kafka` as default | three VMs reaching each other with `ssh $IP.1..3` |
 | [`hello/`](hello) | k3s, the Strimzi operator, Kafka UI and the small cluster `hello` with one message (first lab) | three VMs reaching each other with `ssh $IP.1..3` |
 | [`kafka-ui/`](kafka-ui) | (no script) Kafka UI for the Kafka cluster in the namespace `kafka`, NodePort 30800, applied in the first lab | `k3s/` |
-| [`cluster/`](cluster) | Strimzi operator, Kafka cluster `my-cluster` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
+| [`cluster/`](cluster) | Strimzi operator, Kafka cluster `nordwind-kafka` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
 | [`monitoring/`](monitoring) | Metrics switched on in the Kafka cluster (rolling restart), Prometheus, Grafana with the Strimzi dashboards | `cluster/` |
 | [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
 | [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
@@ -29,7 +29,7 @@ in the manifests. k3s is not pinned: the labs install the latest release. The ru
 | Grafana | `http://<any node>:30300` (admin / admin) |
 | Prometheus | `http://<any node>:30900` |
 | Kafka UI | `http://<any node>:30800` |
-| Kafka inside the cluster | `my-cluster-kafka-bootstrap.kafka.svc:9092` (plain), `:9093` (TLS) |
+| Kafka inside the cluster | `nordwind-kafka-kafka-bootstrap.kafka.svc:9092` (plain), `:9093` (TLS) |
 | Kafka from the VMs | `<node ip>:31094` (NodePort, plain); `cluster/prepare.sh` writes the address list to `~/.kafka-bootstrap-servers` |
 
 ## The wind park workload

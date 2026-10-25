@@ -1,4 +1,4 @@
-# Kafka UI for the Kafka cluster in the namespace `kafka`, whichever runs: `hello` in the first lab, `my-cluster` from
+# Kafka UI for the Kafka cluster in the namespace `kafka`, whichever runs: `hello` in the first lab, `nordwind-kafka` from
 # the second lab on. It connects through the Service `kafka-ui-bootstrap`, which selects the broker pods of any
 # Strimzi cluster in the namespace (a bootstrap name that does not resolve stops Kafka UI for every cluster).
 # NodePort 30800; the lab platform puts the login in front of it.
