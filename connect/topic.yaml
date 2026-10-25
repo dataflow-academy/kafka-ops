@@ -4,7 +4,7 @@ metadata:
   name: maintenance-work-orders
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
 spec:
   topicName: nordwind.maintenance.private.work-orders.state
   partitions: 1

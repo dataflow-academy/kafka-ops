@@ -12,8 +12,6 @@ CONF=/etc/rancher/k3s/registries.yaml
 HOST=registry.registry.svc:5000
 PROBE_SRC=public.ecr.aws/docker/library/busybox:1.37
 
-ssh_t() { if [ "$NODE_SSH" = ssh ]; then ssh -t "$@"; else $NODE_SSH "$@"; fi; }
-
 # Prints the names of the nodes that cannot pull $HOST/probe:1.
 failing_nodes() {
   local node failing=()
@@ -42,12 +40,12 @@ bad="$(failing_nodes)"
 if [ -z "$bad" ]; then echo "All nodes pull from $HOST."; exit 0; fi
 
 for node in $bad; do
-  ip="$(kubectl get node "$node" -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')"
-  n="${ip##*.}"
-  log "$node (node$n) cannot pull from $HOST: adding the mirror to $CONF (the sudo password may be asked)"
+  # The nodes are called node1..node3; `on` reaches them through their private address.
+  n="${node#node}"
+  log "$node cannot pull from $HOST: adding the mirror to $CONF"
   svc=k3s-agent; [ "$n" = 1 ] && svc=k3s
   # If `mirrors:` exists already, a second key would be invalid YAML: insert below it, else add the key.
-  ssh_t "node$n" "$SUDO touch $CONF; if $SUDO grep -q '^mirrors:' $CONF; then
+  on "node$n" "$SUDO touch $CONF; if $SUDO grep -q '^mirrors:' $CONF; then
       $SUDO sed -i '/^mirrors:/a\\  \"$HOST\":\\n    endpoint:\\n      - \"http://localhost:30500\"' $CONF
     else
       printf 'mirrors:\n  \"$HOST\":\n    endpoint:\n      - \"http://localhost:30500\"\n' | $SUDO tee -a $CONF >/dev/null

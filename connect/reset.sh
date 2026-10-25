@@ -6,6 +6,7 @@
 need kubectl
 kube_ready || { echo "No cluster reachable, nothing to reset."; exit 0; }
 N=(-n "$KAFKA_NAMESPACE")
+HERE="$(cd "$(dirname "$0")" && pwd)"
 if kubectl "${N[@]}" get kafkaconnect >/dev/null 2>&1; then
   # The operator removes the KafkaConnector resources' connectors before the finalizers go.
   kubectl "${N[@]}" delete kafkaconnector,kafkaconnect --all --ignore-not-found --timeout=120s >/dev/null || true
@@ -30,5 +31,7 @@ if [ -n "$broker" ]; then
   done
 fi
 kubectl delete namespace registry --ignore-not-found --timeout=120s >/dev/null 2>&1 || true
-rm -f "$HOME/connect.yaml" "$HOME/jdbc-source.yaml"
+# The working files go back to their frames.
+cp "$HERE/connect-frame.yaml" "$HERE/connect.yaml"
+cp "$HERE/jdbc-source-frame.yaml" "$HERE/jdbc-source.yaml"
 echo "Connect lab removed."

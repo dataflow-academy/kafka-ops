@@ -1,4 +1,4 @@
-# Frame for the polling connector. Connection and topic are given; how the connector finds new rows is yours.
+# Working file for the polling connector (jdbc-source-frame.yaml is its pristine copy, reset.sh restores it). Connection and topic are given; how the connector finds new rows is yours.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaConnector
 metadata:
@@ -10,9 +10,9 @@ spec:
   class: io.confluent.connect.jdbc.JdbcSourceConnector
   tasksMax: 1
   config:
-    connection.url: jdbc:postgresql://wartung-db:5432/wartung
-    connection.user: wartung
-    connection.password: wartung
+    connection.url: jdbc:postgresql://maintenance-db:5432/maintenance
+    connection.user: maintenance
+    connection.password: maintenance
     # With `query` the value of topic.prefix is the complete topic name.
     query: SELECT * FROM work_orders
     topic.prefix: nordwind.maintenance.private.work-orders.state
