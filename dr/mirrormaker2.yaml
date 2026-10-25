@@ -1,5 +1,4 @@
-# MirrorMaker 2, active/passive: copies topics and consumer group offsets from `primary` to `dr`.
-# It runs in the namespace of the target cluster (Kafka Connect writes its internal topics there).
+# The working file of the lab (dr/mirrormaker2-frame.yaml is its pristine frame): the connection to both clusters is done, the decisions are yours.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaMirrorMaker2
 metadata:
@@ -22,24 +21,20 @@ spec:
     - source:
         alias: primary
         bootstrapServers: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
-      topicsPattern: "telemetry|turbine-registry|park-registry|nordwind\\..*"
-      groupsPattern: "control-room|forecast|billing"
+      # Which topics and which consumer groups are copied?
+      topicsPattern: ""
+      groupsPattern: ""
       sourceConnector:
         tasksMax: 2
         config:
-          # Same topic names in both clusters, so that applications only change the bootstrap address.
-          replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
+          # How are the topics named in the mirror? (replication.policy.class)
+          # The mirror has three brokers, the topics there need the same replication factor as in the primary cluster.
           replication.factor: 3
           offset-syncs.topic.replication.factor: 3
-          refresh.topics.interval.seconds: 30
-          sync.topic.configs.enabled: "true"
       checkpointConnector:
         tasksMax: 1
         config:
-          replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
           checkpoints.topic.replication.factor: 3
-          # Writes the translated offsets of the groups into the dr cluster (for groups without active members).
-          sync.group.offsets.enabled: "true"
-          sync.group.offsets.interval.seconds: 10
+          # The checkpoint connector has to know the naming policy as well.
+          # What does the cluster need to do with the offsets of the consumer groups?
           emit.checkpoints.interval.seconds: 10
-          refresh.groups.interval.seconds: 30

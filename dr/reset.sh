@@ -45,3 +45,6 @@ if kubectl get namespace windpark >/dev/null 2>&1; then
   kubectl -n windpark delete deployment -l app.kubernetes.io/part-of=wind-park --ignore-not-found >/dev/null
 fi
 "$(dirname "$0")/../windpark/prepare.sh" healthy
+
+# The working file of the lab goes back to its frame.
+cp "$(dirname "$0")/mirrormaker2-frame.yaml" "$(dirname "$0")/mirrormaker2.yaml"
