@@ -20,7 +20,7 @@ spec:
   mirrors:
     - source:
         alias: primary
-        bootstrapServers: my-cluster-kafka-bootstrap.kafka.svc:9092
+        bootstrapServers: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
       # Which topics and which consumer groups are copied?
       topicsPattern: ""
       groupsPattern: ""

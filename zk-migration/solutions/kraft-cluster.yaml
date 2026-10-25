@@ -1,0 +1,49 @@
+# The Kafka resource after the migration: zk-cluster.yaml without spec.zookeeper and without replicas and storage of the
+# brokers (the node pools carry them now).
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: nordwind-kafka
+  namespace: kafka
+spec:
+  kafka:
+    version: 3.9.1
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+      - name: external
+        port: 9094
+        type: nodeport
+        tls: false
+        configuration:
+          preferredNodePortAddressType: InternalIP
+          bootstrap:
+            nodePort: 31094
+          brokers:
+            - broker: 0
+              nodePort: 31095
+            - broker: 1
+              nodePort: 31096
+            - broker: 2
+              nodePort: 31097
+    config:
+      default.replication.factor: 3
+      min.insync.replicas: 2
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+    resources:
+      requests: { memory: 2Gi, cpu: "1" }
+      limits: { memory: 3Gi }
+    jvmOptions:
+      "-Xms": 1g
+      "-Xmx": 1g
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}

@@ -1,13 +1,13 @@
-# The ZooKeeper cluster the migration lab starts from: Strimzi 0.45, Kafka 3.9, three ZooKeeper nodes and three
+# The ZooKeeper cluster the migration lab starts from: Strimzi 0.45.1, Kafka 3.9.1, three ZooKeeper nodes and three
 # brokers, no node pools yet (the lab introduces them). Old API version on purpose: v1beta2.
-# ${...} placeholders come from ../versions.env (see prepare.sh).
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
-  name: ${KAFKA_CLUSTER}
+  name: nordwind-kafka
+  namespace: kafka
 spec:
   kafka:
-    version: ${KAFKA_ZK_VERSION}
+    version: 3.9.1
     replicas: 3
     listeners:
       - name: plain
