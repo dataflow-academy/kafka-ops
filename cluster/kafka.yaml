@@ -7,7 +7,7 @@ metadata:
   name: controller
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
   annotations:
     # Fixed node ids: brokers 0-2, controllers 100-102.
     strimzi.io/next-node-ids: "[100-102]"
@@ -46,7 +46,7 @@ metadata:
   name: broker
   namespace: kafka
   labels:
-    strimzi.io/cluster: my-cluster
+    strimzi.io/cluster: nordwind-kafka
   annotations:
     strimzi.io/next-node-ids: "[0-2]"
 spec:
@@ -84,7 +84,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
-  name: my-cluster
+  name: nordwind-kafka
   namespace: kafka
 spec:
   kafka:

@@ -7,7 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Fixed names of the labs. Versions are not kept here: every manifest and script names its versions literally.
 KAFKA_NAMESPACE=kafka
-KAFKA_CLUSTER=my-cluster
+KAFKA_CLUSTER=nordwind-kafka
 # Provided by the lab VM: where the workload images live.
 # shellcheck disable=SC1091
 [ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env

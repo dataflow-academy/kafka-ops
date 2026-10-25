@@ -13,7 +13,7 @@ labels:
 configMapGenerator:
   - name: wind-producer-config
     literals:
-      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - BOOTSTRAP_SERVERS=nordwind-kafka-kafka-bootstrap.kafka.svc:9092
       - TOPIC=nordwind.scada.public.turbine-telemetry-json.event
       # 50 turbines report per tick: 1000 ms = 50 records/s, 100 ms = 500 records/s.
       - TICK_INTERVAL_MS=1000
@@ -24,7 +24,7 @@ configMapGenerator:
       - JAVA_OPTS=-XX:MaxRAMPercentage=70
   - name: wind-consumer-config
     literals:
-      - BOOTSTRAP_SERVERS=my-cluster-kafka-bootstrap.kafka.svc:9092
+      - BOOTSTRAP_SERVERS=nordwind-kafka-kafka-bootstrap.kafka.svc:9092
       - TOPIC=nordwind.scada.public.turbine-telemetry-json.event
       - GROUP_ID=turbine-monitor
       - JAVA_OPTS=-XX:MaxRAMPercentage=70

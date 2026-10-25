@@ -15,8 +15,8 @@ spec:
         - name: kafka-ui
           image: ghcr.io/kafbat/kafka-ui:v1.5.0
           env:
-            - { name: KAFKA_CLUSTERS_0_NAME, value: "my-cluster" }
-            - { name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS, value: "my-cluster-kafka-bootstrap:9092" }
+            - { name: KAFKA_CLUSTERS_0_NAME, value: "nordwind-kafka" }
+            - { name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS, value: "nordwind-kafka-kafka-bootstrap:9092" }
             - { name: DYNAMIC_CONFIG_ENABLED, value: "false" }
             - { name: JAVA_OPTS, value: "-Xmx384m" }
           ports:
