@@ -1,0 +1,24 @@
+# Change data capture instead of polling: Debezium reads the write-ahead log of PostgreSQL.
+# Needs the Debezium plugin in the image (see the Vertiefung of the lab) and wal_level=logical (set in postgres.yaml).
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnector
+metadata:
+  name: work-orders-cdc
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: connect
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 1
+  config:
+    database.hostname: maintenance-db
+    database.port: 5432
+    database.user: maintenance
+    database.password: maintenance
+    database.dbname: maintenance
+    plugin.name: pgoutput
+    table.include.list: public.work_orders
+    topic.prefix: nordwind.maintenance.cdc
+    # Debezium creates the topic itself, with these settings.
+    topic.creation.default.replication.factor: 3
+    topic.creation.default.partitions: 1

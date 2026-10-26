@@ -1,0 +1,21 @@
+# Working file for the polling connector (jdbc-source-frame.yaml is its pristine copy, reset.sh restores it). Connection and topic are given; how the connector finds new rows is yours.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnector
+metadata:
+  name: work-orders
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: connect
+spec:
+  class: io.confluent.connect.jdbc.JdbcSourceConnector
+  tasksMax: 1
+  config:
+    connection.url: jdbc:postgresql://maintenance-db:5432/maintenance
+    connection.user: maintenance
+    connection.password: maintenance
+    # With `query` the value of topic.prefix is the complete topic name.
+    query: SELECT * FROM work_orders
+    topic.prefix: nordwind.maintenance.private.work-orders.state
+    poll.interval.ms: 5000
+    mode: TODO
+    incrementing.column.name: TODO
