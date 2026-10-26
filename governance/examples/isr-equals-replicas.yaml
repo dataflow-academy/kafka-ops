@@ -1,0 +1,12 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: nordwind-demo-isr
+  namespace: kafka
+  labels: { strimzi.io/cluster: nordwind-kafka }
+spec:
+  topicName: nordwind.demo.private.isr.event
+  partitions: 6
+  replicas: 3
+  config:
+    min.insync.replicas: "3"
