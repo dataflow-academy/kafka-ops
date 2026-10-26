@@ -8,9 +8,6 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Fixed names of the labs. Versions are not kept here: every manifest and script names its versions literally.
 KAFKA_NAMESPACE=kafka
 KAFKA_CLUSTER=nordwind-kafka
-# Provided by the lab VM: where the workload images live.
-# shellcheck disable=SC1091
-[ -r /etc/kafka-ops.env ] && . /etc/kafka-ops.env
 export KAFKA_NAMESPACE KAFKA_CLUSTER
 
 # Tests from outside the VMs set NODE_SSH to a wrapper that reaches every node.
@@ -25,6 +22,7 @@ fi
 
 # The scripts run on node1. `on node1 ...` then runs locally; node N is reached with `ssh $IP.N`. Both take the
 # node and one command string. sudo needs no password on the lab VMs, so no terminal is required.
+# The command string is assembled by the caller for execution on the selected node.
 # shellcheck disable=SC2029
 on() {
   if [ -n "$TEST_WRAPPER" ]; then $NODE_SSH "$1" "$2"
@@ -41,6 +39,7 @@ die() { printf '\e[31m%s\e[0m\n' "$*" >&2; exit 1; }
 
 need() { command -v "$1" >/dev/null || die "$1 is missing."; }
 
+
 # Polls until a command succeeds. wait_for "what" seconds cmd...
 wait_for() {
   local what="$1" limit="$2"; shift 2
@@ -52,3 +51,9 @@ wait_for() {
 }
 
 kube_ready() { kubectl version >/dev/null 2>&1; }
+
+# The pod with the Kafka command line tools for the scripts that work from inside the cluster (tools/kafka-tools.yaml,
+# applied by the participants in the design lab).
+ensure_tools() {
+  kubectl -n "$KAFKA_NAMESPACE" get deployment kafka-tools >/dev/null 2>&1 || "$ROOT/tools/prepare.sh" >/dev/null
+}

@@ -71,7 +71,7 @@
       "type": "row"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -132,7 +132,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"Kafka\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -143,7 +143,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -204,7 +204,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaUser\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -215,7 +215,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -276,7 +276,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaTopic\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -287,7 +287,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -348,7 +348,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaConnect\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -359,7 +359,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -420,7 +420,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaMirrorMaker2\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -431,7 +431,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -492,7 +492,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaNodePool\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -503,7 +503,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -564,7 +564,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaBridge\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -575,7 +575,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -636,7 +636,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaConnector\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -647,7 +647,7 @@
       "type": "stat"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -708,7 +708,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_resources{kind=\"KafkaRebalance\"})",
           "format": "time_series",
           "intervalFactor": 1,
@@ -745,7 +745,7 @@
       "type": "row"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -824,7 +824,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(increase(strimzi_reconciliations_successful_total[1h])) by (kind)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -836,7 +836,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -915,7 +915,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(increase(strimzi_reconciliations_failed_total[1h])) by (kind)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -927,7 +927,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1006,7 +1006,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(increase(strimzi_reconciliations_locked_total[1h])) by (kind)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1018,7 +1018,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1097,7 +1097,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(increase(strimzi_reconciliations_total[1h])) by (kind)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1109,7 +1109,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1188,7 +1188,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(increase(strimzi_reconciliations_periodical_total[1h])) by (kind)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1200,7 +1200,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1280,7 +1280,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(strimzi_reconciliations_duration_seconds_max) by (kind)",
           "format": "time_series",
           "interval": "",
@@ -1442,7 +1442,7 @@
       "type": "row"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1521,7 +1521,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(jvm_memory_used_bytes{container=~\"user-operator|topic-operator|strimzi-cluster-operator\"}) by (container)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1533,7 +1533,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1612,7 +1612,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(rate(jvm_gc_pause_seconds_sum{container=~\"user-operator|topic-operator|strimzi-cluster-operator\"}[5m])) by (container)",
           "format": "time_series",
           "intervalFactor": 1,
@@ -1624,7 +1624,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1703,7 +1703,7 @@
       "pluginVersion": "7.4.5",
       "targets": [
         {
-          "datasource": "${DS_PROMETHEUS}",
+          "datasource": "prometheus",
           "expr": "sum(rate(jvm_gc_pause_seconds_count{container=~\"user-operator|topic-operator|strimzi-cluster-operator\"}[5m])) by (container)",
           "format": "time_series",
           "intervalFactor": 1,

@@ -2,31 +2,29 @@
 # Start state "cluster installed": Strimzi operator plus a three-node Kafka
 # cluster (3 controllers, 3 brokers), Ready. Run it on node1. Idempotent.
 #
-# The operator is the release file of Strimzi 1.1.0, downloaded like Strimzi's own documentation does it and
-# checked against its sha256; kafka.yaml names the Kafka version itself.
+# The operator comes from operator.sh (the release file of Strimzi 1.1.0, as in the
+# first lab); kafka.yaml names the Kafka version itself.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl; need curl
 kube_ready || die "kubectl cannot reach the cluster. Run k3s/prepare.sh first."
 
-STRIMZI_URL="https://github.com/strimzi/strimzi-kafka-operator/releases/download/1.1.0/strimzi-cluster-operator-1.1.0.yaml"
-STRIMZI_SHA256=ee7e38d61452fb7b3be08a3b0fb4497ee0e38d50eb38f41fa4c2276078f68fd0
-file="$HOME/strimzi-1.1.0.yaml"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+"$HERE/operator.sh"
 
-log "Namespace ${KAFKA_NAMESPACE}"
-kubectl create namespace "$KAFKA_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
-
-log "Strimzi 1.1.0"
-curl -sfL "$STRIMZI_URL" -o "$file" || die "Download failed: $STRIMZI_URL"
-echo "$STRIMZI_SHA256  $file" | sha256sum -c --status || die "Checksum mismatch for $STRIMZI_URL"
-# The release file is written for the namespace "myproject".
-sed -i "s/namespace: .*/namespace: ${KAFKA_NAMESPACE}/" "$file"
-kubectl apply -f "$file" >/dev/null
-kubectl -n "$KAFKA_NAMESPACE" rollout status deployment/strimzi-cluster-operator --timeout=180s
+# A leftover hello cluster would hold the NodePorts 31094-31097.
+"$ROOT/hello/reset.sh" >/dev/null 2>&1 || true
 
 log "Kafka cluster ${KAFKA_CLUSTER}"
-kubectl -n "$KAFKA_NAMESPACE" apply -f "$(dirname "$0")/metrics-config.yaml"
-kubectl apply -f "$(dirname "$0")/kafka.yaml"
+kubectl apply -f "$HERE/kafka.yaml"
 kubectl -n "$KAFKA_NAMESPACE" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=600s
+
+# The working file of the later labs (they edit and apply it): the reference design, on the catch-up path too.
+# cluster/nordwind-kafka.yaml (the file the groups edit in the design lab) on the catch-up path too. A design the
+# group made itself (no ": TODO" left in the file) is not touched.
+if grep -q ": TODO" "$HERE/nordwind-kafka.yaml"; then cp "$HERE/kafka.yaml" "$HERE/nordwind-kafka.yaml"; fi
+
+# The pod with the Kafka command line tools for the places where the access from inside the cluster is the point.
+"$HERE/../tools/prepare.sh"
 
 # The self-check tests of the labs run as `ssh ... python3 tests.py` and find
 # the cluster through this file (see tests.py.erb in the labs repo).

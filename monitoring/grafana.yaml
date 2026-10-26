@@ -19,6 +19,10 @@ data:
         folder: Kafka
         type: file
         options: { path: /var/lib/grafana-dashboards }
+      - name: wind-park
+        folder: Wind park
+        type: file
+        options: { path: /var/lib/grafana-dashboards-wind-park }
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -53,6 +57,7 @@ spec:
             - { name: provisioning-ds, mountPath: /etc/grafana/provisioning/datasources }
             - { name: provisioning-db, mountPath: /etc/grafana/provisioning/dashboards }
             - { name: dashboards, mountPath: /var/lib/grafana-dashboards }
+            - { name: dashboards-wind-park, mountPath: /var/lib/grafana-dashboards-wind-park }
       volumes:
         - name: provisioning-ds
           configMap:
@@ -62,11 +67,16 @@ spec:
           configMap:
             name: grafana-provisioning
             items: [{ key: dashboards.yaml, path: dashboards.yaml }]
+        - name: dashboards-wind-park
+          configMap:
+            name: dashboards-wind-park
         - name: dashboards
           projected:
             sources:
-              - configMap: { name: dashboards-strimzi }
-              - configMap: { name: dashboards-wind-park }
+              - configMap: { name: dashboards-strimzi-kafka }
+              - configMap: { name: dashboards-strimzi-kraft }
+              - configMap: { name: dashboards-strimzi-kafka-exporter }
+              - configMap: { name: dashboards-strimzi-operators }
 ---
 apiVersion: v1
 kind: Service

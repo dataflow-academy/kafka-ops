@@ -1,0 +1,522 @@
+# The wind park of Nordwind: the applications of six teams. Every setting of an application is a value in
+# its ConfigMap. All resources carry their own namespace (windpark, or kafka for the KafkaTopic).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+---
+# Team SCADA: the telemetry producer of the wind park (50 turbines, one record per turbine and tick).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scada-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TOPIC: telemetry
+  TICK_INTERVAL_MS: "250"
+  KAFKA_ACKS: "1"
+  KAFKA_ENABLE_IDEMPOTENCE: "false"
+  KAFKA_LINGER_MS: "10"
+  KAFKA_COMPRESSION_TYPE: zstd
+  JAVA_OPTS: -XX:MaxRAMPercentage=70
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scada-telemetry
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: scada-telemetry
+    app.kubernetes.io/part-of: wind-park
+    team: scada
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: scada-telemetry
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: scada-telemetry
+        app.kubernetes.io/part-of: wind-park
+        team: scada
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: producer
+          image: ghcr.io/dataflow-academy/java/wind-turbine-producer-json:5fa95d96abc154b3db3c16b9b80602328876bda0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: scada-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Team Assets: publishes the master data (turbines and parks) as a full snapshot every 20 seconds.
+# The application writes everything, waits for the acknowledgements and exits non-zero if a delivery fails;
+# the pod restarts and starts the next round.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assets-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TURBINE_REGISTRY_TOPIC: turbine-registry
+  PARK_REGISTRY_TOPIC: park-registry
+  KAFKA_REQUEST_TIMEOUT_MS: "5000"
+  KAFKA_DELIVERY_TIMEOUT_MS: "10000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: assets-masterdata
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: assets-masterdata
+    app.kubernetes.io/part-of: wind-park
+    team: assets
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: assets-masterdata
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: assets-masterdata
+        app.kubernetes.io/part-of: wind-park
+        team: assets
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: producer
+          image: ghcr.io/dataflow-academy/python/wind-masterdata-producer:5fa95d96abc154b3db3c16b9b80602328876bda0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c", "while true; do wind-masterdata-producer || exit 1; sleep 20; done"]
+          envFrom:
+            - configMapRef:
+                name: assets-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Team Control room: reads the telemetry in the consumer group `control-room`.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: control-room-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TOPIC: telemetry
+  GROUP_ID: control-room
+  JAVA_OPTS: -XX:MaxRAMPercentage=70
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: control-room
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: control-room
+    app.kubernetes.io/part-of: wind-park
+    team: control-room
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: control-room
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: control-room
+        app.kubernetes.io/part-of: wind-park
+        team: control-room
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: consumer
+          image: ghcr.io/dataflow-academy/java/wind-turbine-consumer-json:5fa95d96abc154b3db3c16b9b80602328876bda0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: control-room-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Team Billing: reads the telemetry in the consumer group `billing`
+# (an older application: it still uses the classic group protocol).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: billing-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TOPIC: telemetery
+  GROUP_ID: billing
+  KAFKA_GROUP_PROTOCOL: classic
+  JAVA_OPTS: -XX:MaxRAMPercentage=70
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: billing
+    app.kubernetes.io/part-of: wind-park
+    team: billing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: billing
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: billing
+        app.kubernetes.io/part-of: wind-park
+        team: billing
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: consumer
+          image: ghcr.io/dataflow-academy/java/wind-turbine-consumer-json:5fa95d96abc154b3db3c16b9b80602328876bda0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: billing-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Team Forecast: reads the telemetry in the consumer group `forecast`.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forecast-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TOPIC: telemetry
+  GROUP_ID: forecast
+  JAVA_OPTS: -XX:MaxRAMPercentage=70
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forecast
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: forecast
+    app.kubernetes.io/part-of: wind-park
+    team: forecast
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: forecast
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: forecast
+        app.kubernetes.io/part-of: wind-park
+        team: forecast
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: consumer
+          image: ghcr.io/dataflow-academy/java/wind-turbine-consumer-json:5fa95d96abc154b3db3c16b9b80602328876bda0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: forecast-config
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 10m
+              memory: 384Mi
+            limits:
+              cpu: 25m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Team Maintenance: after every service round the maintenance tool reports the turbine it worked on,
+# as one record in the telemetry topic (written with the console producer).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maintenance-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TOPIC: telemetry
+  TURBINE: alpha-ventus-07
+  POWER_KW: "n/a"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: maintenance-report
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: maintenance-report
+    app.kubernetes.io/part-of: wind-park
+    team: maintenance
+spec:
+  schedule: "*/20 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: maintenance-report
+            app.kubernetes.io/part-of: wind-park
+            team: maintenance
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: report
+              image: quay.io/strimzi/kafka:1.1.0-kafka-4.3.0
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - configMapRef:
+                    name: maintenance-config
+              env:
+                - name: KAFKA_HEAP_OPTS
+                  value: "-Xmx128m"
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  now=$(date +%s%3N)
+                  # a reading that is not a number is written as text
+                  case "$POWER_KW" in *[!0-9.]*) POWER_KW="\"$POWER_KW\"" ;; esac
+                  printf '%s|{"wind_turbine_id":"%s","wind_park_id":"%s","timestamp":%s,"wind_speed_ms":6.5,"power_kw":%s,"status":"MAINTENANCE"}\n' \
+                    "$TURBINE" "$TURBINE" "${TURBINE%-*}" "$now" "$POWER_KW" |
+                  /opt/kafka/bin/kafka-console-producer.sh \
+                    --bootstrap-server "$BOOTSTRAP_SERVERS" --topic "$TOPIC" \
+                    --reader-property parse.key=true --reader-property 'key.separator=|'
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 192Mi
+                limits:
+                  memory: 384Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: [ALL]
+          volumes:
+            - name: tmp
+              emptyDir: {}
+---
+# Team Alerts: writes an alert record every ten seconds into its own topic.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: windpark-alerts
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+    app.kubernetes.io/part-of: wind-park
+spec:
+  topicName: windpark_alerts
+  partitions: 1
+  replicas: 1
+  config:
+    min.insync.replicas: "1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alerts-config
+  namespace: windpark
+  labels:
+    app.kubernetes.io/part-of: wind-park
+data:
+  BOOTSTRAP_SERVERS: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+  TOPIC: windpark_alerts
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alerts
+  namespace: windpark
+  labels:
+    app.kubernetes.io/name: alerts
+    app.kubernetes.io/part-of: wind-park
+    team: alerts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: alerts
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: alerts
+        app.kubernetes.io/part-of: wind-park
+        team: alerts
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: alerts
+          image: quay.io/strimzi/kafka:1.1.0-kafka-4.3.0
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: alerts-config
+          env:
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xmx128m"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              i=0
+              while true; do
+                i=$((i+1))
+                printf 'alert-%s|{"alert":"wind-gust","park":"alpha-ventus","seq":%s}\n' "$i" "$i"
+                sleep 10
+              done |
+              /opt/kafka/bin/kafka-console-producer.sh \
+                --bootstrap-server "$BOOTSTRAP_SERVERS" --topic "$TOPIC" \
+                --reader-property parse.key=true --reader-property 'key.separator=|'
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: tmp
+          emptyDir: {}
