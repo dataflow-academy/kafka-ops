@@ -18,7 +18,7 @@ The lesson: TODO (when does a convention have to come, and what does it cost if 
 | Setting | Value | Why |
 |---|---|---|
 | `auto.create.topics.enable` | false | TODO |
-| `num.partitions` | 6 | TODO |
+| `num.partitions` | 12 | TODO |
 | `default.replication.factor` | 3 | |
 | `min.insync.replicas` | 2 | |
 
