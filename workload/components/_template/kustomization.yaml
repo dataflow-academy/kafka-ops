@@ -1,0 +1,16 @@
+# Skeleton of a fault component. Copy the directory, rename it after the fault
+# (not after the symptom), and list it under `components:` of overlays/training.
+# This directory is not used by any overlay.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+patches:
+  - target: { kind: Deployment, name: wind-turbine-consumer }
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+# Faults can equally patch the generated ConfigMaps:
+configMapGenerator:
+  - name: wind-consumer-config
+    behavior: merge
+    literals: []
