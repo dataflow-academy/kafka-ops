@@ -13,8 +13,11 @@ need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
 kubectl -n "$KAFKA_NAMESPACE" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || die "Kafka cluster is missing. Run cluster/prepare.sh first."
 HERE="$(cd "$(dirname "$0")" && pwd)"
-# Deployments that crash-loop on a poison pill never become ready: do not wait four minutes for each.
+# How long the script waits for each Deployment to become ready.
 ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-240s}"
+# The consumers of the telemetry topic. With the faults built in they crash-loop on the poison pill on purpose
+# (fault F2) and never become ready: the faulty start states do not wait for them.
+TELEMETRY_CONSUMERS=(control-room forecast billing)
 MODE="${1:-training}"
 [ $# -eq 0 ] || shift
 TOPIC_VARIANT=sensible
@@ -56,14 +59,16 @@ done
 alerts_topic="$(kubectl -n windpark get configmap alerts-config -o jsonpath='{.data.TOPIC}')"
 if [ "$alerts_topic" = windpark_alerts ]; then stale=nordwind.alerts.public.windpark-alert.event; else stale=windpark-alerts; fi
 kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic "$stale" --ignore-not-found
-for d in scada-telemetry assets-masterdata control-room forecast billing alerts; do
+WAIT_FOR=(scada-telemetry assets-masterdata alerts)
+[ "$MODE" = healthy ] && WAIT_FOR+=("${TELEMETRY_CONSUMERS[@]}")
+for d in "${WAIT_FOR[@]}"; do
   kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
 # A consumer stuck on the old poison pill never becomes ready; fixes/ ships with the day 2 labs.
 if [ "$MODE" = healthy ] && [ -x "$HERE/fixes/skip-poison-pill.sh" ]; then
   consumers_ready() {
     local d
-    for d in control-room forecast billing; do
+    for d in "${TELEMETRY_CONSUMERS[@]}"; do
       [ "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.status.readyReplicas}')" = "$(kubectl -n windpark get deployment "$d" -o jsonpath='{.spec.replicas}')" ] || return 1
     done
   }
