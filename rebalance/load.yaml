@@ -1,0 +1,46 @@
+# The load for the rebalance lab: a topic with 12 partitions and replication factor 3, and a Job that writes about
+# 600 MB into it, so that Cruise Control has something to move. The name follows the naming convention of the
+# governance lab, the resource name stays a plain Kubernetes name.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: rebalance-demo
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  topicName: nordwind.platform.private.rebalance-demo.event
+  partitions: 12
+  replicas: 3
+  config:
+    min.insync.replicas: "2"
+    retention.ms: "604800000"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rebalance-demo
+  namespace: kafka
+  labels: { app.kubernetes.io/name: rebalance-load, app.kubernetes.io/part-of: rebalance }
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: rebalance-load, app.kubernetes.io/part-of: rebalance }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: load
+          image: quay.io/strimzi/kafka:1.1.0-kafka-4.2.1
+          command: [sh, -c]
+          args:
+            - >-
+              until bin/kafka-topics.sh --bootstrap-server nordwind-kafka-kafka-bootstrap:9092
+              --describe --topic nordwind.platform.private.rebalance-demo.event >/dev/null 2>&1; do sleep 2; done;
+              bin/kafka-producer-perf-test.sh --topic nordwind.platform.private.rebalance-demo.event
+              --num-records 600000 --record-size 1024 --throughput -1
+              --producer-props bootstrap.servers=nordwind-kafka-kafka-bootstrap:9092
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { memory: 1Gi }

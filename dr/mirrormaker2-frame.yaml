@@ -1,0 +1,40 @@
+# The frame for the lab: the connection to both clusters is done, the decisions are yours.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaMirrorMaker2
+metadata:
+  name: mm2
+  namespace: kafka-dr
+spec:
+  replicas: 1
+  target:
+    alias: dr
+    bootstrapServers: dr-cluster-kafka-bootstrap.kafka-dr.svc:9092
+    groupId: mm2-cluster
+    configStorageTopic: mm2-configs
+    offsetStorageTopic: mm2-offsets
+    statusStorageTopic: mm2-status
+    config:
+      config.storage.replication.factor: 3
+      offset.storage.replication.factor: 3
+      status.storage.replication.factor: 3
+  mirrors:
+    - source:
+        alias: primary
+        bootstrapServers: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
+      # Which topics and which consumer groups are copied?
+      topicsPattern: ""
+      groupsPattern: ""
+      sourceConnector:
+        tasksMax: 2
+        config:
+          # How are the topics named in the mirror? (replication.policy.class)
+          # The mirror has three brokers, the topics there need the same replication factor as in the primary cluster.
+          replication.factor: 3
+          offset-syncs.topic.replication.factor: 3
+      checkpointConnector:
+        tasksMax: 1
+        config:
+          checkpoints.topic.replication.factor: 3
+          # The checkpoint connector has to know the naming policy as well.
+          # What does the cluster need to do with the offsets of the consumer groups?
+          emit.checkpoints.interval.seconds: 10
