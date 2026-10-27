@@ -23,9 +23,9 @@ if [ "$state" != "$want" ] || [ "${op##*:}" != "1.1.0" ]; then
   "$HERE/monitoring/prepare.sh"
   "$HERE/windpark/prepare.sh" healthy
 elif [ -n "$(kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" -o jsonpath='{.spec.kafka.authorization.type}')" ]; then
-  # Right versions, but the security lab was not cleaned up: authorization on and the wind park locked out.
-  log "Authorization is still on (security lab); running security/reset.sh"
-  "$HERE/security/reset.sh"
+  # Right versions, authorization from the security lab: users and ACLs go, the wind park returns to the plain listener.
+  log "Authorization is on (security lab): users and ACLs go, everyone may connect again"
+  "$HERE/security/reset.sh" --keep-authorization
 fi
 kubectl "${N[@]}" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=600s
 kubectl -n windpark get deployment control-room >/dev/null 2>&1 || "$HERE/windpark/prepare.sh" healthy
