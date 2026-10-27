@@ -1,0 +1,53 @@
+# Working file of the Debezium lab (connect-frame.yaml is its pristine copy, reset.sh restores it): fill in the two TODOs
+# and apply it with `kubectl apply -f`.
+# A Connect cluster of its own for change data capture, with an image that Strimzi builds in the cluster.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnect
+metadata:
+  name: debezium
+  namespace: kafka
+  annotations:
+    # Connectors are KafkaConnector resources, not calls to the REST API.
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.2.1
+  replicas: 1
+  bootstrapServers: nordwind-kafka-kafka-bootstrap:9092
+  groupId: nordwind-debezium
+  offsetStorageTopic: nordwind-debezium-offsets
+  configStorageTopic: nordwind-debezium-configs
+  statusStorageTopic: nordwind-debezium-status
+  config:
+    offset.storage.replication.factor: 3
+    config.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    # Connect stores the source offsets every 10 seconds (default 60); only then Debezium confirms its position to the
+    # replication slot, and PostgreSQL may release the log before it.
+    offset.flush.interval.ms: 10000
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+  resources:
+    requests: {memory: 1Gi, cpu: 200m}
+    limits: {memory: 1536Mi}
+  build:
+    output:
+      type: docker
+      # Pushed by the build pod to the registry in the cluster (connect/registry.yaml); the nodes pull it through the
+      # containerd mirror in /etc/rancher/k3s/registries.yaml.
+      image: registry.registry.svc:5000/nordwind/debezium:1
+      # The registry speaks plain HTTP.
+      additionalPushOptions: ["--tls-verify=false"]
+    plugins:
+      - name: debezium-postgres
+        artifacts:
+          - type: tgz
+            url: TODO       # the Debezium PostgreSQL connector 3.6.3.Final, the plugin archive from Maven Central
+            sha512sum: TODO # Maven Central publishes it next to the archive (.sha512)
+  template:
+    buildContainer:
+      securityContext:
+        # buildah has to mount while it unpacks the base image; containerd's default AppArmor profile forbids that.
+        appArmorProfile:
+          type: Unconfined

@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Removes everything the Connect lab creates: connectors, Kafka Connect (with its build pod), the registry
-# with all images, the database, the topics. The mirror entry on the nodes stays (it is harmless).
+# with all images (unless the Debezium lab still uses it), the database, the topics. The mirror entry on the nodes
+# stays (it is harmless).
 # Run it on node1. Idempotent.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
 kube_ready || { echo "No cluster reachable, nothing to reset."; exit 0; }
 N=(-n "$KAFKA_NAMESPACE")
 HERE="$(cd "$(dirname "$0")" && pwd)"
-if kubectl "${N[@]}" get kafkaconnect >/dev/null 2>&1; then
-  # The operator removes the KafkaConnector resources' connectors before the finalizers go.
-  kubectl "${N[@]}" delete kafkaconnector,kafkaconnect --all --ignore-not-found --timeout=120s >/dev/null || true
+if kubectl "${N[@]}" get kafkaconnect connect >/dev/null 2>&1; then
+  # Only this lab's Connect cluster and its connectors: the Debezium lab runs a Connect cluster of its own.
+  kubectl "${N[@]}" delete kafkaconnector -l strimzi.io/cluster=connect --ignore-not-found --timeout=120s >/dev/null || true
+  kubectl "${N[@]}" delete kafkaconnect connect --ignore-not-found --timeout=120s >/dev/null || true
   # A Connect pod that is still shutting down would create its internal topics again (auto-creation).
   kubectl "${N[@]}" wait pod -l strimzi.io/cluster=connect --for=delete --timeout=120s >/dev/null 2>&1 || true
 fi
@@ -30,7 +32,10 @@ if [ -n "$broker" ]; then
     sleep 2
   done
 fi
-kubectl delete namespace registry --ignore-not-found --timeout=120s >/dev/null 2>&1 || true
+# The registry stays while the Debezium lab's Connect cluster still pulls its image from it.
+if ! kubectl "${N[@]}" get kafkaconnect debezium >/dev/null 2>&1; then
+  kubectl delete namespace registry --ignore-not-found --timeout=120s >/dev/null 2>&1 || true
+fi
 # The working files go back to their frames.
 cp "$HERE/connect-frame.yaml" "$HERE/connect.yaml"
 cp "$HERE/jdbc-source-frame.yaml" "$HERE/jdbc-source.yaml"

@@ -1,0 +1,129 @@
+# The SCADA database of the wind park, deployed "naively" for the lab: no operator, no volume, no backup.
+# wal_level=logical lets Debezium read the write-ahead log. The DBA side is done in init.sql: a role for Debezium
+# with REPLICATION and read access only, and a publication for exactly the two tables.
+# scada-feed updates the live values of every turbine ten times per second, so the log keeps growing.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scada
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scada-db-init
+  namespace: scada
+data:
+  init.sql: |
+    CREATE TABLE turbines (
+        id        VARCHAR(10) PRIMARY KEY,
+        model     VARCHAR(40) NOT NULL,
+        rated_kw  INTEGER     NOT NULL,
+        state     VARCHAR(20) NOT NULL DEFAULT 'running'
+    );
+    CREATE TABLE readings (
+        turbine_id  VARCHAR(10) PRIMARY KEY REFERENCES turbines(id) ON DELETE CASCADE,
+        power_kw    INTEGER     NOT NULL,
+        wind_ms     REAL        NOT NULL,
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+    INSERT INTO turbines (id, model, rated_kw)
+        SELECT 'WT-' || lpad(n::text, 4, '0'),
+               CASE WHEN n % 3 = 0 THEN 'Nordwind N149' ELSE 'Nordwind N117' END,
+               CASE WHEN n % 3 = 0 THEN 5700 ELSE 3600 END
+        FROM generate_series(1, 30) AS n;
+    INSERT INTO readings (turbine_id, power_kw, wind_ms)
+        SELECT id, 0, 0 FROM turbines;
+
+    -- What a DBA hands to the platform team: a login that may replicate and read, nothing else.
+    CREATE ROLE debezium WITH LOGIN REPLICATION PASSWORD 'debezium';
+    GRANT SELECT ON turbines, readings TO debezium;
+    -- The publication decides which tables reach the log stream. Created here, Debezium needs no owner rights.
+    CREATE PUBLICATION nordwind_cdc FOR TABLE turbines, readings;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scada-db
+  namespace: scada
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: scada-db}
+  template:
+    metadata:
+      labels: {app: scada-db}
+    spec:
+      containers:
+        - name: postgres
+          image: public.ecr.aws/docker/library/postgres:17
+          args: ["-c", "wal_level=logical"]
+          env:
+            - {name: POSTGRES_USER, value: scada}
+            - {name: POSTGRES_PASSWORD, value: scada}
+            - {name: POSTGRES_DB, value: scada}
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec: {command: [pg_isready, -U, scada]}
+          resources:
+            requests: {memory: 256Mi, cpu: 100m}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - {name: init, mountPath: /docker-entrypoint-initdb.d}
+            - {name: data, mountPath: /var/lib/postgresql/data}
+      volumes:
+        - name: init
+          configMap: {name: scada-db-init}
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scada-db
+  namespace: scada
+spec:
+  selector: {app: scada-db}
+  ports:
+    - port: 5432
+---
+# The SCADA system: writes the current power and wind speed of every turbine ten times per second.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scada-feed
+  namespace: scada
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: scada-feed}
+  template:
+    metadata:
+      labels: {app: scada-feed}
+    spec:
+      containers:
+        - name: feed
+          image: public.ecr.aws/docker/library/postgres:17
+          env:
+            - {name: PGHOST, value: scada-db}
+            - {name: PGUSER, value: scada}
+            - {name: PGPASSWORD, value: scada}
+            - {name: PGDATABASE, value: scada}
+          command: ["bash", "-c"]
+          args:
+            - |
+              until pg_isready -q; do sleep 2; done
+              # One session, ten updates of all turbines per second; reconnects if the database goes away.
+              while true; do
+                while true; do
+                  echo "UPDATE readings s SET wind_ms = round((4 + random() * 10)::numeric, 1),
+                      power_kw = CASE WHEN t.state = 'running' THEN (random() * t.rated_kw)::int ELSE 0 END,
+                      updated_at = now() FROM turbines t WHERE t.id = s.turbine_id;"
+                  sleep 0.1
+                done | psql -q
+                sleep 2
+              done
+          resources:
+            requests: {memory: 32Mi, cpu: 20m}
+            limits: {memory: 64Mi}
