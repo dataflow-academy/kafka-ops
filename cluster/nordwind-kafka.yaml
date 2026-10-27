@@ -1,0 +1,90 @@
+# Your cluster design. Replace every TODO with your decision and apply the file with `kubectl apply -f`.
+# The later labs change this file, too.
+#
+# Fixed for the next days (do not rename): the cluster is called `nordwind-kafka`, the node pools
+# `controller` and `broker`, everything lives in the namespace `kafka`.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: controller
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+  annotations:
+    # Fixed node ids: controllers 100 and up.
+    strimzi.io/next-node-ids: "[100-102]"
+spec:
+  replicas: TODO            # how many controllers?
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 5Gi
+        kraftMetadata: shared
+        deleteClaim: false
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: broker
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+  annotations:
+    # Fixed node ids: brokers 0 and up.
+    strimzi.io/next-node-ids: "[0-2]"
+spec:
+  replicas: TODO            # how many brokers?
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: TODO          # disk per broker, for example 20Gi
+        kraftMetadata: shared
+        deleteClaim: false
+---
+apiVersion: kafka.strimzi.io/v1
+kind: Kafka
+metadata:
+  name: nordwind-kafka
+  namespace: kafka
+spec:
+  kafka:
+    version: 4.2.1
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      # Reachable from outside the cluster, for example from the VMs (command line tools, self-checks):
+      # bootstrap on NodePort 31094 of any node, one NodePort per broker behind it.
+      - name: external
+        port: 9094
+        type: nodeport
+        tls: false
+        configuration:
+          preferredNodePortAddressType: InternalIP
+          bootstrap:
+            nodePort: 31094
+          brokers:
+            - broker: 0
+              nodePort: 31095
+            - broker: 1
+              nodePort: 31096
+            - broker: 2
+              nodePort: 31097
+    config:
+      default.replication.factor: TODO
+      min.insync.replicas: TODO
+      offsets.topic.replication.factor: TODO            # as above
+      transaction.state.log.replication.factor: TODO    # as above
+      transaction.state.log.min.isr: TODO               # as above
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}

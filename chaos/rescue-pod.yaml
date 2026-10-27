@@ -1,0 +1,20 @@
+# A pod that mounts the data volume of a broker so that a full volume can be cleaned while the broker cannot start.
+# Replace the N in claimName (data-0-nordwind-kafka-broker-N) with the node id of the broker. The volume lives on one
+# node; the scheduler puts the pod there by itself.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rescue
+  namespace: kafka
+spec:
+  restartPolicy: Never
+  containers:
+    - name: rescue
+      image: rancher/mirrored-library-busybox:1.37.0
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - { name: data, mountPath: /data }
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: data-0-nordwind-kafka-broker-N

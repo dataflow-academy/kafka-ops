@@ -10,15 +10,27 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | Folder | Start state after `prepare.sh` | Needs |
 |---|---|---|
 | [`k3s/`](k3s) | the latest k3s on three nodes (server on node1, agents on node2 and node3), kubeconfig for `user` with the namespace `kafka` as default | three VMs reaching each other with `ssh $IP.1..3` |
+| [`hello/`](hello) | k3s, the Strimzi operator, Kafka UI and the small cluster `hello` with one message (first lab) | three VMs reaching each other with `ssh $IP.1..3` |
+| [`kafka-ui/`](kafka-ui) | (no script) Kafka UI for the Kafka cluster in the namespace `kafka`, NodePort 30800, applied in the first lab | `k3s/` |
 | [`cluster/`](cluster) | Strimzi operator, Kafka cluster `nordwind-kafka` Ready: 3 controllers and 3 brokers, one of each per node | `k3s/` |
-| [`monitoring/`](monitoring) | Prometheus, Grafana with the Strimzi dashboards, Kafka UI | `cluster/` |
-| [`workload/`](workload) | Legacy: the first wind park layout, superseded by `windpark/` (see the training labs). Topic, producer and consumers (`./prepare.sh [overlay]`) | `cluster/` |
-| [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job | `cluster/` |
+| [`monitoring/`](monitoring) | Metrics switched on in the Kafka cluster (rolling restart), Prometheus, Grafana with the Strimzi dashboards | `cluster/` |
+| [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
+| [`tools/`](tools) | The Pod `kafka-tools` with the Kafka command line tools, used from the second lab on | `cluster/` |
+| [`chaos/`](chaos) | Six failures of the platform, a script that causes one at random and one that heals all of them | `cluster/`, `monitoring/`, `windpark/` |
+| [`governance/`](governance) | The state after the wind park repairs, topic auto-creation on, no policies; material for the naming and limit policies | `cluster/`, `windpark/` |
+| [`storage/`](storage) | Cluster, monitoring and wind park running, no experiment topics; retention and compaction experiments | `cluster/`, `windpark/` |
+| [`rebalance/`](rebalance) | Three brokers, no Cruise Control, topic `nordwind.platform.private.rebalance-demo.event` with about 600 MB (`load.yaml`) | `cluster/` |
+| [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization (the lab adds the `tls` listener itself if the cluster has none) | `cluster/`, `windpark/` |
+| [`dr/`](dr) | Only the first cluster; the second cluster `dr-cluster` in `kafka-dr` and MirrorMaker 2 are built in the lab | `cluster/`, `windpark/` |
+| [`upgrade/`](upgrade) | Cluster at the install versions with monitoring and wind park; a changed cluster is rebuilt | `k3s/` |
+| [`zk-migration/`](zk-migration) | Strimzi 0.45.1 and a ZooKeeper-based cluster (Kafka 3.9.1) with load; `reset.sh` restores the modern stack | `k3s/` |
+| [`connect/`](connect) | Registry in the cluster, PostgreSQL with a table and its topic; Kafka Connect and the connectors are built in the lab (optional) | `cluster/` |
+| [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job on a topic named by the convention | `cluster/` |
 
 Every manifest and script names its versions literally: the Strimzi release in the download URL of
-[`cluster/prepare.sh`](cluster/prepare.sh), `version` and `metadataVersion` in the `Kafka` resource, the image tags
+[`cluster/operator.sh`](cluster/operator.sh), `version` and `metadataVersion` in the `Kafka` resources, the image tags
 in the manifests. k3s is not pinned: the labs install the latest release. The rule for Strimzi and Kafka is
-"current release minus one" (Strimzi 1.1.0, Kafka 4.2.1), so that the upgrade lab has a real step to take.
+"current release minus one" (Strimzi 1.1.0, Kafka 4.2.1), so that the upgrade lab has a real step to take (Strimzi 1.2.0, Kafka 4.3.1, `metadataVersion` 4.3-IV0).
 
 ## Reaching things
 
@@ -43,20 +55,11 @@ patch, never a rebuild:
 | `KAFKA_<NAME>` | any client config; `KAFKA_LINGER_MS=20` becomes `linger.ms=20`. Environment wins over the defaults in the code |
 | `JAVA_OPTS` | JVM options such as `-XX:MaxRAMPercentage=70` |
 
-Layout for "broken from the first deployment, fixed in later labs", using Kustomize:
-
-* `workload/base` is the healthy wind park.
-* `workload/components/<fault>` is one fault: a patch to a ConfigMap value, a resource limit, a topic setting. See `_template`.
-* `workload/overlays/training` is the base plus the faults that participants meet first.
-  Each later lab removes the fixed fault from its `components:` list (`overlays/after-<lab>`).
-* `workload/overlays/healthy` is the reference without faults.
-
-`./workload/prepare.sh training` converges the cluster to whatever the overlay lists, `./workload/reset.sh` removes it.
+The wind park is two plain manifests in [`windpark/`](windpark): `windpark-faulty.yaml` is the state the participants meet (they work in `windpark.yaml`, a copy that `windpark/prepare.sh` keeps in step)
+(with built-in faults), `windpark-healthy.yaml` is the same without the faults. They are applied with
+`kubectl apply -f`.
 
 ### Images
 
-The images are pulled from a private registry, pinned by commit SHA in the manifests. Where the registry is
-(`WIND_IMAGE_REGISTRY`) and the pull credentials come from the lab VM: `/etc/kafka-ops.env` names the registry,
-`/etc/rancher/k3s/registries.yaml` holds the credentials and must exist before k3s is installed. Without access,
-`STAGE_IMAGES_FROM=<sources> ./workload/prepare.sh` builds the same images on the node and imports them into k3s on
-all nodes. That is a stopgap for testing.
+The images are public (`ghcr.io/dataflow-academy/...`) and pinned by commit SHA in the manifests. The nodes need
+no pull credentials.

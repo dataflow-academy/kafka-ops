@@ -1,0 +1,27 @@
+# The brokers of the ZooKeeper cluster as a node pool. The name has to be `kafka` (the brokers are called
+# nordwind-kafka-kafka-0..2 already), the node ids 0-2 follow from the pod names, and the storage must be the one the
+# existing volumes have, otherwise the operator wants to replace them.
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: kafka
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  replicas: 3
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 20Gi
+        deleteClaim: true
+  resources:
+    requests: { memory: 2Gi, cpu: "1" }
+    limits: { memory: 3Gi }
+  jvmOptions:
+    "-Xms": 1g
+    "-Xmx": 1g

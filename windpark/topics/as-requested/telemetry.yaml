@@ -1,0 +1,12 @@
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: telemetry
+  namespace: kafka
+  labels: { strimzi.io/cluster: nordwind-kafka }
+spec:
+  partitions: 500
+  replicas: 3
+  config:
+    retention.ms: "2592000000"
+    segment.bytes: "67108864"

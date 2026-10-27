@@ -1,0 +1,25 @@
+# Team Billing reads the telemetry in the consumer group `billing`. Without Read on the group a consumer
+# can neither join nor commit offsets: the topic ACL alone is not enough.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaUser
+metadata:
+  name: billing
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: telemetry
+          patternType: literal
+        operations: [Read, Describe]
+      - resource:
+          type: group
+          name: billing
+          patternType: literal
+        operations: [Read]

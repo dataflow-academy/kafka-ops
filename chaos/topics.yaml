@@ -1,0 +1,31 @@
+# Three topics for the failure lab, one per producer: acks=all, acks=1 and acks=0. Three replicas, one partition,
+# everything else is the broker default (min.insync.replicas 2).
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: chaos-acks-all
+  namespace: kafka
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: failures }
+spec:
+  partitions: 1
+  replicas: 3
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: chaos-acks-1
+  namespace: kafka
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: failures }
+spec:
+  partitions: 1
+  replicas: 3
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: chaos-acks-0
+  namespace: kafka
+  labels: { strimzi.io/cluster: nordwind-kafka, training/experiment: failures }
+spec:
+  partitions: 1
+  replicas: 3
