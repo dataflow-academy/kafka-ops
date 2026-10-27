@@ -1,28 +1,21 @@
 #!/usr/bin/env bash
-# Hands a Kafka user to a team's application: copies the user's Secret and the cluster CA into the team's
-# namespace (a Secret cannot be mounted across namespaces) and sets the bootstrap address and six client settings on the
-# Deployment that make the application connect with mutual TLS to the tls listener.
+# Connects a team's application with its Kafka user, the same change the lab makes by hand for the control room:
+# copies the Secrets into the team's namespace (copy-secrets.sh) and sets the bootstrap address and six client
+# settings on the Deployment, so that the application connects with mutual TLS to the tls listener.
 #
-#   ./connect-app.sh <deployment> <user> [namespace]      e.g.  ./connect-app.sh control-room control-room
+#   ./connect-app.sh <deployment> <user> [namespace]      e.g.  ./connect-app.sh scada-telemetry scada
 #
-# In production the team would do this in its own repository; the settings are plain client configs:
+# The settings are plain client configs. They go into the Deployment's env, which wins over its ConfigMap:
 #   BOOTSTRAP_SERVERS  ...:9093      KAFKA_SECURITY_PROTOCOL=SSL
 #   KAFKA_SSL_KEYSTORE_TYPE=PEM      KAFKA_SSL_KEYSTORE_CERTIFICATE_CHAIN / KAFKA_SSL_KEYSTORE_KEY  (user.crt / user.key)
 #   KAFKA_SSL_TRUSTSTORE_TYPE=PEM    KAFKA_SSL_TRUSTSTORE_CERTIFICATES                              (cluster CA)
+# `kubectl describe deployment <deployment> -n <namespace>` shows them afterwards.
 . "$(dirname "$0")/../lib/common.sh"
-need kubectl; need python3
+need kubectl
 deploy="${1:?usage: connect-app.sh <deployment> <user> [namespace]}"; user="${2:?}"; ns="${3:-windpark}"
 
-copy_secret() {  # copy_secret <name in kafka> <name in team namespace>
-  kubectl -n "$KAFKA_NAMESPACE" get secret "$1" -o json | python3 -c '
-import json, sys
-s = json.load(sys.stdin)
-json.dump({"apiVersion": "v1", "kind": "Secret", "type": "Opaque",
-           "metadata": {"name": sys.argv[1], "namespace": sys.argv[2]}, "data": s["data"]}, sys.stdout)' "$2" "$ns" | kubectl apply -f - >/dev/null
-}
-kubectl -n "$KAFKA_NAMESPACE" get secret "$user" >/dev/null 2>&1 || die "No Secret '$user' in $KAFKA_NAMESPACE: is the KafkaUser there and Ready?"
-copy_secret "$user" "kafka-user-$user"
-copy_secret "${KAFKA_CLUSTER}-cluster-ca-cert" kafka-cluster-ca
+kubectl -n "$ns" get deployment "$deploy" >/dev/null || die "No Deployment '$deploy' in the namespace $ns."
+"$(dirname "$0")/copy-secrets.sh" "$user" "$ns"
 
 container="$(kubectl -n "$ns" get deployment "$deploy" -o jsonpath='{.spec.template.spec.containers[0].name}')"
 secret_env() { printf '{"name":"%s","valueFrom":{"secretKeyRef":{"name":"%s","key":"%s"}}}' "$1" "$2" "$3"; }

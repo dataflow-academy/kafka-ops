@@ -19,7 +19,7 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`chaos/`](chaos) | Six failures of the platform, a script that causes one at random and one that heals all of them | `cluster/`, `monitoring/`, `windpark/` |
 | [`storage/`](storage) | Cluster, monitoring and wind park running, no experiment topics; retention and compaction experiments | `cluster/`, `windpark/` |
 | [`rebalance/`](rebalance) | Three brokers, no Cruise Control, no demo topic (the lab creates a skewed one with the command line tools) | `cluster/`, `monitoring/` |
-| [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization (the lab adds the `tls` listener itself if the cluster has none) | `cluster/`, `windpark/` |
+| [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization with `allow.everyone.if.no.acl.found` (the lab adds the `tls` listener itself if the cluster has none); the labs after it start with `reset.sh --keep-authorization` | `cluster/`, `windpark/` |
 | [`dr/`](dr) | Only the first cluster; the second cluster `dr-cluster` in `kafka-dr` and MirrorMaker 2 are built in the lab | `cluster/`, `windpark/` |
 | [`upgrade/`](upgrade) | Cluster at the install versions with monitoring and wind park; a changed cluster is rebuilt | `k3s/` |
 | [`zk-migration/`](zk-migration) | Strimzi 0.45.1 and a ZooKeeper-based cluster (Kafka 3.9.1) with load; `reset.sh` restores the modern stack | `k3s/` |

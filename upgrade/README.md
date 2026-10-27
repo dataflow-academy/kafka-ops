@@ -8,5 +8,5 @@ the lab text and nowhere else.
 | File | Purpose |
 |---|---|
 | `operator.sh [version]` | Wrapper around `../cluster/operator.sh [version]`, which installs a Strimzi release the way the Strimzi documentation does (download, sha256, namespace, apply) and does not touch the `Kafka` resource. Default: 1.2.0 |
-| `prepare.sh` | Start state: cluster at the install versions with monitoring and wind park. A cluster that was upgraded is rebuilt from `../cluster/kafka.yaml` (Strimzi does not roll a raised metadata version back) and `~/nordwind-kafka.yaml` becomes that cluster's file again (the old one is kept as `~/nordwind-kafka.yaml.bak`). A cluster at the install versions that still has authorization switched on gets `../security/reset.sh` first |
+| `prepare.sh` | Start state: cluster at the install versions with monitoring and wind park. A cluster that was upgraded is rebuilt from `../cluster/kafka.yaml` (Strimzi does not roll a raised metadata version back) and `~/nordwind-kafka.yaml` becomes that cluster's file again (the old one is kept as `~/nordwind-kafka.yaml.bak`). A cluster at the install versions with authorization from the security lab gets `../security/reset.sh --keep-authorization` first (users and ACLs go, the wind park returns to the plain listener) |
 | `reset.sh` | The same rebuild, unconditionally; destroys all data |
