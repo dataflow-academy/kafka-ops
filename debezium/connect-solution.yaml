@@ -1,0 +1,52 @@
+# The solution of the Debezium lab: connect.yaml with both TODOs filled in.
+# A Connect cluster of its own for change data capture, with an image that Strimzi builds in the cluster.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnect
+metadata:
+  name: debezium
+  namespace: kafka
+  annotations:
+    # Connectors are KafkaConnector resources, not calls to the REST API.
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.2.1
+  replicas: 1
+  bootstrapServers: nordwind-kafka-kafka-bootstrap:9092
+  groupId: nordwind-debezium
+  offsetStorageTopic: nordwind-debezium-offsets
+  configStorageTopic: nordwind-debezium-configs
+  statusStorageTopic: nordwind-debezium-status
+  config:
+    offset.storage.replication.factor: 3
+    config.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    # Connect stores the source offsets every 10 seconds (default 60); only then Debezium confirms its position to the
+    # replication slot, and PostgreSQL may release the log before it.
+    offset.flush.interval.ms: 10000
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+  resources:
+    requests: {memory: 1Gi, cpu: 200m}
+    limits: {memory: 1536Mi}
+  build:
+    output:
+      type: docker
+      # Pushed by the build pod to the registry in the cluster (connect/registry.yaml); the nodes pull it through the
+      # containerd mirror in /etc/rancher/k3s/registries.yaml.
+      image: registry.registry.svc:5000/nordwind/debezium:1
+      # The registry speaks plain HTTP.
+      additionalPushOptions: ["--tls-verify=false"]
+    plugins:
+      - name: debezium-postgres
+        artifacts:
+          - type: tgz
+            url: https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/3.6.3.Final/debezium-connector-postgres-3.6.3.Final-plugin.tar.gz
+            sha512sum: 400495c485a1da532c5d7e2dcc3bbb1b7f7dcdbcdc74c82529309cb89a2c37298319ea45ea00414b3ce750a51ad01084e104725e810c55c1a7c1981baff201a0
+  template:
+    buildContainer:
+      securityContext:
+        # buildah has to mount while it unpacks the base image; containerd's default AppArmor profile forbids that.
+        appArmorProfile:
+          type: Unconfined

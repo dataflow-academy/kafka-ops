@@ -1,0 +1,40 @@
+# Working file of the Debezium lab (connector-frame.yaml is its pristine copy, reset.sh restores it).
+# Change data capture from the SCADA database: Debezium reads the write-ahead log of PostgreSQL through a
+# replication slot and writes one topic per table.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnector
+metadata:
+  name: scada-cdc
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: debezium
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 1
+  # running, paused or stopped
+  state: running
+  config:
+    database.hostname: scada-db.scada.svc
+    database.port: 5432
+    database.user: debezium
+    database.password: debezium
+    database.dbname: scada
+    # The logical decoding plugin built into PostgreSQL.
+    plugin.name: pgoutput
+    # The DBA created the publication (see postgres.yaml); Debezium only uses it.
+    publication.name: nordwind_cdc
+    publication.autocreate.mode: disabled
+    # The replication slot: the database keeps every part of the log this slot has not confirmed yet.
+    slot.name: nordwind_cdc
+    table.include.list: public.turbines,public.readings
+    # Debezium names its topics <topic.prefix>.<schema>.<table>, e.g. nordwind.scada.cdc.public.turbines ...
+    topic.prefix: nordwind.scada.cdc
+    # ... and the RegexRouter renames them to the convention: nordwind.scada.private.turbines.state (topics.yaml).
+    transforms: route
+    transforms.route.type: org.apache.kafka.connect.transforms.RegexRouter
+    transforms.route.regex: nordwind\.scada\.cdc\.public\.(.*)
+    transforms.route.replacement: nordwind.scada.private.$1.state
+    # First start: read every row once (snapshot), then follow the log (streaming).
+    snapshot.mode: initial
+    # How often the task retries after an error it considers temporary. -1 (the default): forever.
+    errors.max.retries: -1

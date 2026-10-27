@@ -1,0 +1,32 @@
+# One topic per table. Debezium would call them <topic.prefix>.<schema>.<table>; the connector renames them to the
+# Nordwind convention nordwind.<domain>.<public|private>.<entity>.<event|state|command> (connector.yaml, transforms).
+# Created here, so partitions, replicas and the cleanup policy are decided by the platform team and not by whatever
+# the connector would create. Compacted: the key is the primary key, so the topic keeps the last state of every row,
+# and a delete (tombstone) removes the row from the topic after compaction.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: scada-turbines
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  topicName: nordwind.scada.private.turbines.state
+  partitions: 1
+  replicas: 3
+  config:
+    cleanup.policy: compact
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaTopic
+metadata:
+  name: scada-readings
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  topicName: nordwind.scada.private.readings.state
+  partitions: 1
+  replicas: 3
+  config:
+    cleanup.policy: compact
