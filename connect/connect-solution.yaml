@@ -1,0 +1,47 @@
+# The solution of the Connect lab: Kafka Connect with the image built by Strimzi inside the cluster.
+# connect.yaml is the working file of the lab; this file is the finished result.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnect
+metadata:
+  name: connect
+  namespace: kafka
+  annotations:
+    # Connectors are KafkaConnector resources, not calls to the REST API.
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.2.1
+  replicas: 1
+  bootstrapServers: nordwind-kafka-kafka-bootstrap:9092
+  groupId: nordwind-connect
+  offsetStorageTopic: nordwind-connect-offsets
+  configStorageTopic: nordwind-connect-configs
+  statusStorageTopic: nordwind-connect-status
+  config:
+    offset.storage.replication.factor: 3
+    config.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+  build:
+    output:
+      type: docker
+      # Pushed from the build pod by its service name. The nodes pull it through the mirror
+      # in /etc/rancher/k3s/registries.yaml (see registry-mirror.sh).
+      image: registry.registry.svc:5000/nordwind/connect:1
+      # The registry speaks plain HTTP.
+      additionalPushOptions: ["--tls-verify=false"]
+    plugins:
+      - name: jdbc
+        artifacts:
+          - type: zip
+            url: https://hub-downloads.confluent.io/api/plugins/confluentinc/kafka-connect-jdbc/versions/10.9.0/confluentinc-kafka-connect-jdbc-10.9.0.zip
+            sha512sum: c588502177eda40e8e8f8e316b46e959f401eb669e51ac77e40e194811f0976c6bcb2e6e296065830ca6a513b855ddb8433b686a2861330393c67c549f109dc1
+  template:
+    buildContainer:
+      securityContext:
+        # buildah has to mount while it unpacks the base image; containerd's default AppArmor profile
+        # forbids that. Everything else stays restricted (no privileged, no extra capabilities).
+        appArmorProfile:
+          type: Unconfined
