@@ -17,7 +17,6 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
 | [`tools/`](tools) | The Pod `kafka-tools` with the Kafka command line tools, used from the second lab on | `cluster/` |
 | [`chaos/`](chaos) | Six failures of the platform, a script that causes one at random and one that heals all of them | `cluster/`, `monitoring/`, `windpark/` |
-| [`governance/`](governance) | The state after the wind park repairs, topic auto-creation on, no policies; material for the naming and limit policies | `cluster/`, `windpark/` |
 | [`storage/`](storage) | Cluster, monitoring and wind park running, no experiment topics; retention and compaction experiments | `cluster/`, `windpark/` |
 | [`rebalance/`](rebalance) | Three brokers, no Cruise Control, no demo topic (the lab creates a skewed one with the command line tools) | `cluster/`, `monitoring/` |
 | [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization (the lab adds the `tls` listener itself if the cluster has none) | `cluster/`, `windpark/` |

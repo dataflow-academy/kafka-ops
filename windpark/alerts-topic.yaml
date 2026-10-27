@@ -1,4 +1,4 @@
-# The topic team Alerts should have had from the start: named by the convention, three replicas.
+# The topic team Alerts should have had from the start: three partitions, three replicas.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:

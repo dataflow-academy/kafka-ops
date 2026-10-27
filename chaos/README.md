@@ -20,7 +20,7 @@ Every entry point touches its marker `~/.bad-things<N>-started` (the self-checks
 
 | File | What it does |
 |---|---|
-| `topics.yaml` | three experiment topics `chaos-acks-all`, `chaos-acks-1`, `chaos-acks-0`: three replicas, one partition, broker defaults (while the naming policy of the governance lab is active they are rejected: run `governance/reset.sh` first) |
+| `topics.yaml` | three experiment topics `chaos-acks-all`, `chaos-acks-1`, `chaos-acks-0`: three replicas, one partition, broker defaults |
 | `../tools/verifiable-producer.py` | the producers of the lab, on the host: numbered records, one table row per acknowledgment, one line per failure (`--acks all\|1\|0`) |
 | `place-alerts.sh` | put the topic `windpark_alerts` (fault F3, one replica) on the broker of node3 |
 | `break.sh P1\|P1b\|P4` | cause one failure and say nothing about which broker it hit; creates `~/.chaos-started` |
