@@ -5,8 +5,7 @@
 #   PERF_NAME=perf-acks1 PERF_PRODUCER_PROPS="acks=1 linger.ms=20" ./run.sh
 #
 #   PERF_NAME         Job and KafkaTopic resource name (default perf-<time>)
-#   PERF_TOPIC        Kafka topic name (default nordwind.platform.private.$PERF_NAME.event, which passes the
-#                     naming policy of the governance lab)
+#   PERF_TOPIC        Kafka topic name (default nordwind.platform.private.$PERF_NAME.event)
 #   PERF_PARTITIONS   default 6      PERF_REPLICAS  default 3      PERF_MIN_ISR  default 2
 #   PERF_RECORDS      default 1000000
 #   PERF_RECORD_SIZE  bytes, default 1024

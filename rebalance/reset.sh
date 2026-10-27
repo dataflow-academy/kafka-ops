@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Back to three brokers without Cruise Control. A broker that carries replicas must not simply be
-# scaled away, so broker 3 is emptied with a remove-brokers rebalance first. Run it on node1. Idempotent.
+# Back to three brokers without Cruise Control and without the demo topic. A broker that carries replicas must not
+# simply be scaled away, so broker 3 is emptied with a remove-brokers rebalance first. Run it on node1. Idempotent.
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
 kube_ready || { echo "No cluster reachable, nothing to reset."; exit 0; }
@@ -56,3 +56,12 @@ if kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" -o jsonpath='{.spec.cruiseContro
   kubectl "${N[@]}" patch kafka "$KAFKA_CLUSTER" --type json -p '[{"op":"remove","path":"/spec/cruiseControl"}]' >/dev/null
 fi
 wait_for "Kafka settled" 900 kafka_settled
+
+# The skewed demo topic of the lab (created with kafka-topics.sh, so there is no KafkaTopic resource) and the load of
+# earlier versions of this folder.
+log "Deleting the demo topic"
+ensure_tools
+kubectl "${N[@]}" exec deploy/kafka-tools -- kafka-topics.sh --bootstrap-server "${KAFKA_CLUSTER}-kafka-bootstrap:9092" \
+  --delete --if-exists --topic nordwind.platform.private.rebalance-demo.event
+kubectl "${N[@]}" delete kafkatopic rebalance-demo --ignore-not-found >/dev/null
+kubectl "${N[@]}" delete job rebalance-demo --ignore-not-found >/dev/null

@@ -21,8 +21,13 @@ The images are public, `ghcr.io/dataflow-academy/...:<commit sha>`, pinned in th
 namespace (`windpark`, or `kafka` for the KafkaTopic of team Alerts).
 
 `requests/scada.yaml`, `assets.yaml` and `maintenance.yaml` are the files participants fill in for the topics of the onboarding requests, one file per team (the control room needs no topic of its own); they edit them where they live.
-`prepare.sh` creates those topics if they do not exist yet (with the grandfathering label of the governance lab
-when its naming policy is active). Participants create them themselves in the onboarding lab.
+`prepare.sh` creates those topics if they do not exist yet. Participants create them themselves in the onboarding lab.
+
+`alerts-topic.yaml` and `migrate-alerts.sh` belong to the deep dive of "Helping the dev teams" that moves team Alerts
+from `windpark_alerts` (fault F3, one replica) to a topic with three replicas: the new `KafkaTopic`, and a script that
+copies the alerts across and remembers how far it got (`~/.alerts-copied`), so a second run copies only what arrived since.
+`prepare.sh` removes whichever of the two alert topics `alerts-config` does not point to; `fixes/reset-to-training.sh`
+forgets the copy state.
 
 Editing ConfigMap data in `windpark.yaml` and applying it does not restart a Deployment: restart only the affected
 Deployment explicitly with `kubectl rollout restart`. A CronJob uses the changed ConfigMap on its next Job; existing

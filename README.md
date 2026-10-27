@@ -17,14 +17,14 @@ Every folder is one topic, self-contained, with a `prepare.sh` that creates a de
 | [`windpark/`](windpark) | the applications of six teams in the namespace `windpark`, with built-in faults (`./prepare.sh [as-requested\|healthy]`) | `cluster/` |
 | [`tools/`](tools) | The Pod `kafka-tools` with the Kafka command line tools, used from the second lab on | `cluster/` |
 | [`chaos/`](chaos) | Six failures of the platform, a script that causes one at random and one that heals all of them | `cluster/`, `monitoring/`, `windpark/` |
-| [`governance/`](governance) | The state after the wind park repairs, topic auto-creation on, no policies; material for the naming and limit policies | `cluster/`, `windpark/` |
 | [`storage/`](storage) | Cluster, monitoring and wind park running, no experiment topics; retention and compaction experiments | `cluster/`, `windpark/` |
-| [`rebalance/`](rebalance) | Three brokers, no Cruise Control, topic `nordwind.platform.private.rebalance-demo.event` with about 600 MB (`load.yaml`) | `cluster/` |
-| [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization (the lab adds the `tls` listener itself if the cluster has none) | `cluster/`, `windpark/` |
-| [`dr/`](dr) | Only the first cluster; the second cluster `dr-cluster` in `kafka-dr` and MirrorMaker 2 are built in the lab | `cluster/`, `windpark/` |
+| [`rebalance/`](rebalance) | Three brokers, no Cruise Control, no demo topic (the lab creates a skewed one with the command line tools) | `cluster/`, `monitoring/` |
+| [`security/`](security) | Open cluster, wind park without faults; `KafkaUser` examples, mTLS and authorization with `allow.everyone.if.no.acl.found` (the lab adds the `tls` listener itself if the cluster has none); the labs after it start with `reset.sh --keep-authorization` | `cluster/`, `windpark/` |
+| [`dr/`](dr) | Your cluster without the users and ACLs of the security lab (authorization stays), no mirror; MirrorMaker 2 pulls from the cluster of another group (over the public node addresses, optionally TLS) | `cluster/`, `windpark/` |
 | [`upgrade/`](upgrade) | Cluster at the install versions with monitoring and wind park; a changed cluster is rebuilt | `k3s/` |
 | [`zk-migration/`](zk-migration) | Strimzi 0.45.1 and a ZooKeeper-based cluster (Kafka 3.9.1) with load; `reset.sh` restores the modern stack | `k3s/` |
 | [`connect/`](connect) | Registry in the cluster, PostgreSQL with a table and its topic; Kafka Connect and the connectors are built in the lab (optional) | `cluster/` |
+| [`debezium/`](debezium) | Registry in the cluster, the SCADA database (PostgreSQL with logical replication) with a writing feed and the topics; Kafka Connect with Debezium and the connector are built in the lab (optional) | `cluster/` |
 | [`perf/`](perf) | `./run.sh` runs one `kafka-producer-perf-test` as a Job on a topic named by the convention | `cluster/` |
 
 Every manifest and script names its versions literally: the Strimzi release in the download URL of

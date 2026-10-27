@@ -12,9 +12,7 @@ scripts assume that material is available.
 
 | | |
 |---|---|
-| `reset-to-training.sh` | the wind park with faults F1-F5, topic auto-creation on, and a poison pill from the maintenance tool in the topic (start of "Helping the dev teams"); it does not wait for the consumers that crash on the pill |
-| `f3-alerts.yaml` | team Alerts's own topic and the ConfigMap that points to it (F3), applied on top of the healthy wind park |
-| `after-helping-devs.sh` | applies the healthy wind park plus `f3-alerts.yaml` (F1, F2, F4 and F5 repaired, F3 stays), moves the three consumer groups behind the poison pills, and writes the same state into the working file `windpark.yaml` |
+| `reset-to-training.sh` | the wind park with faults F1-F5, topic auto-creation on again (if the end of the lab switched it off: a rolling restart, and the two lines are removed from `cluster/nordwind-kafka.yaml`), and a poison pill from the maintenance tool in the topic (start of "Helping the dev teams"); it does not wait for the consumers that crash on the pill |
 | `skip-poison-pill.sh` | stops the consumer applications, moves their groups to the end of the telemetry topic, starts them again |
 
-`./prepare.sh healthy` (in the folder above) is the wind park without any fault, the state after the governance lab.
+`./prepare.sh healthy` (in the folder above) is the wind park without any fault, the start state of the later labs.

@@ -1,15 +1,15 @@
-# MirrorMaker 2, active/passive: copies topics and consumer group offsets from `primary` to `dr`.
-# It runs in the namespace of the target cluster (Kafka Connect writes its internal topics there).
+# A solution for a group whose region is "nord" and whose neighbor is "sued" at 203.0.113.10. Your region names and
+# the neighbor's address are your own. Over the TLS listener (extra task) the source gets port 31194 and the `tls` part.
 apiVersion: kafka.strimzi.io/v1
 kind: KafkaMirrorMaker2
 metadata:
   name: mm2
-  namespace: kafka-dr
+  namespace: kafka
 spec:
   replicas: 1
   target:
-    alias: dr
-    bootstrapServers: dr-cluster-kafka-bootstrap.kafka-dr.svc:9092
+    alias: nord
+    bootstrapServers: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
     groupId: mm2-cluster
     configStorageTopic: mm2-configs
     offsetStorageTopic: mm2-offsets
@@ -20,26 +20,36 @@ spec:
       status.storage.replication.factor: 3
   mirrors:
     - source:
-        alias: primary
-        bootstrapServers: nordwind-kafka-kafka-bootstrap.kafka.svc:9092
-      topicsPattern: "telemetry|turbine-registry|park-registry|nordwind\\..*"
-      groupsPattern: "control-room|forecast|billing"
+        alias: sued
+        # Any node of the neighbor: the external listener (NodePort 31094) on its public address.
+        bootstrapServers: 203.0.113.10:31094
+        # Extra task, over TLS: the TLS listener of the neighbor and their cluster CA. The broker certificates do not
+        # carry the node addresses, so the host name check is off; the certificate chain is still checked.
+        # bootstrapServers: 203.0.113.10:31194
+        # tls:
+        #   trustedCertificates:
+        #     - secretName: neighbor-cluster-ca
+        #       certificate: ca.crt
+        # config:
+        #   ssl.endpoint.identification.algorithm: ""
+      # The default naming policy puts the source alias in front: sued.telemetry. Your own telemetry stays apart.
+      topicsPattern: "telemetry"
+      groupsPattern: "report-sued"
       sourceConnector:
         tasksMax: 2
         config:
-          # Same topic names in both clusters, so that applications only change the bootstrap address.
-          replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
           replication.factor: 3
           offset-syncs.topic.replication.factor: 3
+          offset-syncs.topic.location: target
+          sync.topic.acls.enabled: "false"
           refresh.topics.interval.seconds: 30
-          sync.topic.configs.enabled: "true"
       checkpointConnector:
         tasksMax: 1
         config:
-          replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
           checkpoints.topic.replication.factor: 3
-          # Writes the translated offsets of the groups into the dr cluster (for groups without active members).
-          sync.group.offsets.enabled: "true"
-          sync.group.offsets.interval.seconds: 10
+          offset-syncs.topic.location: target
           emit.checkpoints.interval.seconds: 10
           refresh.groups.interval.seconds: 30
+          # Writes the translated offsets of the groups into your cluster (for groups without active members here).
+          sync.group.offsets.enabled: "true"
+          sync.group.offsets.interval.seconds: 10

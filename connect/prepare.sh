@@ -9,8 +9,8 @@ HERE="$(cd "$(dirname "$0")/.." && pwd)"
 N=(-n "$KAFKA_NAMESPACE")
 kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || die "Kafka cluster is missing. Run cluster/prepare.sh first."
 if [ -n "$(kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" -o jsonpath='{.spec.kafka.authorization.type}')" ]; then
-  log "Authorization is still on (security lab); running security/reset.sh"
-  "$HERE/security/reset.sh"
+  log "Authorization is on (security lab): users and ACLs go, everyone may connect again"
+  "$HERE/security/reset.sh" --keep-authorization
 fi
 "$(dirname "$0")/reset.sh"
 

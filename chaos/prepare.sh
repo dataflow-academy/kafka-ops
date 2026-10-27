@@ -14,9 +14,6 @@ if ! kubectl get ns windpark >/dev/null 2>&1 || ! kubectl -n "$NS" get kafkatopi
 fi
 "$ROOT/tools/prepare.sh"
 "$(dirname "$0")/heal.sh"
-if kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1; then
-  log "The naming policy of the governance lab is active: the experiment topics (topics.yaml) would be rejected. Run governance/reset.sh first."
-fi
 
 "$(dirname "$0")/place-alerts.sh" || true   # only if the wind park topic exists
 log "Failure lab ready"
