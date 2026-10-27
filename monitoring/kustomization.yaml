@@ -4,6 +4,7 @@ resources:
   - prometheus.yaml
   - kube-state-metrics.yaml
   - grafana.yaml
+  - cruise-control-metrics-config.yaml
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:
@@ -15,5 +16,7 @@ configMapGenerator:
     files: [dashboards/strimzi-kafka-exporter.json]
   - name: dashboards-strimzi-operators
     files: [dashboards/strimzi-operators.json]
+  - name: dashboards-strimzi-cruise-control
+    files: [dashboards/strimzi-cruise-control.json]
   - name: dashboards-wind-park
     files: [dashboards/wind-park.json]
