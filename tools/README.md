@@ -9,6 +9,10 @@ INSIDE the cluster on node1, for the places where the access from inside is the 
 
 `prepare.sh` applies it and waits; `reset.sh` removes it. Idempotent.
 
+`orphans.sh` lists the topics that exist in Kafka but have no `KafkaTopic` resource (topics that created themselves
+while topic auto-creation was on; internal topics are left out). "Helping the dev teams" uses it after switching
+auto-creation off.
+
 `verifiable-producer.py` writes numbered records from the host (the lab "Ops goes wrong" runs three of them side by
 side), one table row per acknowledged record and one line per failed one:
 

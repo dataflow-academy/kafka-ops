@@ -7,7 +7,6 @@
 #                                created as a careful platform team would (only if they do not exist yet)
 #   ./prepare.sh as-requested    same, but the topics approved as requested (fault F6)
 #   ./prepare.sh healthy         no faults (windpark-healthy.yaml)
-#   ./prepare.sh healthy <file>  more manifests applied afterwards (for example fixes/f3-alerts.yaml)
 . "$(dirname "$0")/../lib/common.sh"
 need kubectl
 kube_ready || die "kubectl cannot reach the cluster."
@@ -19,7 +18,6 @@ ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-240s}"
 # (fault F2) and never become ready: the faulty start states do not wait for them.
 TELEMETRY_CONSUMERS=(control-room forecast billing)
 MODE="${1:-training}"
-[ $# -eq 0 ] || shift
 TOPIC_VARIANT=sensible
 FILES=("$HERE/windpark-faulty.yaml")
 case "$MODE" in
@@ -28,19 +26,11 @@ case "$MODE" in
   training) ;;
   *) die "Unknown mode: $MODE (training, as-requested or healthy)" ;;
 esac
-for extra in "$@"; do
-  case "$extra" in /*) FILES+=("$extra") ;; *) FILES+=("$HERE/$extra") ;; esac
-done
 log "Topics of the onboarding requests (${TOPIC_VARIANT})"
 # Only topics that do not exist yet: never overwrite what a group has created.
-# These topics exist before the naming convention. Once the governance lab has put its naming policy in place, they are
-# created grandfathered (the label the lab sets by hand), otherwise the policy would reject them.
-label=()
-kubectl get validatingadmissionpolicy kafkatopic-naming >/dev/null 2>&1 && label=(governance.nordwind/grandfathered=true)
 for f in "$HERE/topics/$TOPIC_VARIANT"/{telemetry,turbine-registry,park-registry,maintenance-reports}.yaml; do
   name="$(sed -n 's/^  name: //p' "$f")"
   if kubectl -n "$KAFKA_NAMESPACE" get kafkatopic "$name" >/dev/null 2>&1; then echo "exists: $name"
-  elif [ ${#label[@]} -gt 0 ]; then kubectl label --local -f "$f" "${label[@]}" -o yaml | kubectl apply -f -
   else kubectl apply -f "$f"; fi
 done
 
@@ -55,15 +45,24 @@ declare -A DEPLOYMENT=([scada-config]=scada-telemetry [assets-config]=assets-mas
 for cm in "${!DEPLOYMENT[@]}"; do
   if grep -q "^configmap/$cm configured" <<<"$applied"; then kubectl -n windpark rollout restart "deployment/${DEPLOYMENT[$cm]}"; fi
 done
-# Alerts writes to one topic at a time (F3's own topic or the one that follows the naming convention): remove the other.
-alerts_topic="$(kubectl -n windpark get configmap alerts-config -o jsonpath='{.data.TOPIC}')"
-if [ "$alerts_topic" = windpark_alerts ]; then stale=nordwind.alerts.public.windpark-alert.event; else stale=windpark-alerts; fi
-kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic "$stale" --ignore-not-found
 WAIT_FOR=(scada-telemetry assets-masterdata alerts)
 [ "$MODE" = healthy ] && WAIT_FOR+=("${TELEMETRY_CONSUMERS[@]}")
 for d in "${WAIT_FOR[@]}"; do
   kubectl -n windpark rollout status "deployment/$d" --timeout="$ROLLOUT_TIMEOUT" || true
 done
+# Alerts writes to one topic at a time (F3's own topic or the one with three replicas it moves to): remove the other,
+# in Kafka too. Only once the old pod has stopped: with topic auto-creation on it would create the topic again.
+alerts_topic="$(kubectl -n windpark get configmap alerts-config -o jsonpath='{.data.TOPIC}')"
+if [ "$alerts_topic" = windpark_alerts ]; then stale=nordwind.alerts.public.windpark-alert.event; stale_topic=$stale
+else stale=windpark-alerts; stale_topic=windpark_alerts; fi
+for _ in $(seq 40); do
+  [ "$(kubectl -n windpark get pods -l app.kubernetes.io/name=alerts --no-headers | wc -l)" -le 1 ] && break
+  sleep 3
+done
+kubectl -n "$KAFKA_NAMESPACE" delete kafkatopic "$stale" --ignore-not-found
+ensure_tools
+kubectl -n "$KAFKA_NAMESPACE" exec deploy/kafka-tools -- kafka-topics.sh --bootstrap-server "$KAFKA_CLUSTER-kafka-bootstrap:9092" \
+  --delete --if-exists --topic "$stale_topic"
 # A consumer stuck on the old poison pill never becomes ready; fixes/ ships with the day 2 labs.
 if [ "$MODE" = healthy ] && [ -x "$HERE/fixes/skip-poison-pill.sh" ]; then
   consumers_ready() {
