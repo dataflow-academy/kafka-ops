@@ -38,6 +38,8 @@ kubectl -n "$ns" rollout status deployment/assets-masterdata --timeout=180s
 
 # Console producer: the PEM values go into the properties file on one line, with \n for the line breaks.
 console_patch() {  # console_patch <kind> <name> <user>
+  # The shell variables in the Python string belong to the command written into the workload.
+  # shellcheck disable=SC2016
   kubectl -n "$ns" get "$1" "$2" -o json | USER_NAME="$3" BOOTSTRAP="$bootstrap" python3 -c '
 import json, os, sys
 obj = json.load(sys.stdin)
