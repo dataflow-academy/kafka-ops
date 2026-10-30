@@ -23,6 +23,7 @@ N=(-n "$KAFKA_NAMESPACE")
 kubectl "${N[@]}" get kafka "$KAFKA_CLUSTER" >/dev/null 2>&1 || { echo "No Kafka cluster, nothing to reset."; exit 0; }
 
 log "Users and the copies of their Secrets"
+rm -f "$ROOT/security/platform.properties" "$ROOT/security/platform-ca.crt"
 kubectl "${N[@]}" delete kafkauser --all --ignore-not-found >/dev/null
 for s in $(kubectl -n windpark get secret -o name 2>/dev/null | grep -E 'kafka-user-|kafka-cluster-ca' || true); do
   kubectl -n windpark delete "$s" --ignore-not-found >/dev/null
@@ -46,6 +47,13 @@ if "external" not in names:
                 {"name": "external", "port": 9094, "type": "nodeport", "tls": False, "configuration": {
                     "preferredNodePortAddressType": "InternalIP", "bootstrap": {"nodePort": 31094},
                     "brokers": [{"broker": b, "nodePort": 31095 + b} for b in range(3)]}}})
+else:
+    # The lab puts the listener external on TLS with SCRAM.
+    i = names.index("external")
+    if kafka["listeners"][i].get("tls"):
+        ops.append({"op": "replace", "path": "/spec/kafka/listeners/%d/tls" % i, "value": False})
+    if kafka["listeners"][i].get("authentication"):
+        ops.append({"op": "remove", "path": "/spec/kafka/listeners/%d/authentication" % i})
 if os.environ["MODE"] == "full":
     if kafka.get("authorization"):
         ops.append({"op": "remove", "path": "/spec/kafka/authorization"})
@@ -69,17 +77,40 @@ if [ -n "$ops" ]; then
     sed -i -E 's/^(\s*allow\.everyone\.if\.no\.acl\.found:\s*)"?false"?/\1true/' "$file"
     echo "cluster/nordwind-kafka.yaml: allow.everyone.if.no.acl.found is true again"
   fi
-  if [ -e "$file" ] && ! grep -qE '^\s*- name: plain' "$file"; then
+  if [ -e "$file" ]; then
     python3 - "$file" <<'PY'
 import re, sys
 path = sys.argv[1]
-text = open(path).read()
-indent = re.search(r"^( *)listeners:$", text, re.M).group(1) + "  "
-block = """- name: plain
-  port: 9092
-  type: internal
-  tls: false
-- name: external
+lines = open(path).read().split("\n")
+# The listener external: tls false, no authentication.
+out, indent, skip = [], None, None
+for line in lines:
+    width = len(line) - len(line.lstrip())
+    if skip is not None:
+        if line.strip() and width > skip:
+            continue
+        skip = None
+    if re.match(r"\s*- name: ", line):
+        indent = width if line.strip() == "- name: external" else None
+    elif indent is not None and line.strip() and width <= indent:
+        indent = None
+    if indent is not None and width == indent + 2:
+        if line.strip() == "tls: true":
+            line = line.replace("true", "false")
+        elif line.strip() == "authentication:":
+            skip = width
+            continue
+    out.append(line)
+text = "\n".join(out)
+def block(body):
+    return "".join(pad + b + "\n" for b in body.splitlines())
+# Same indentation as the entries already in the list.
+pad = re.search(r"^ *listeners:\n( *)- ", text, re.M).group(1)
+add = ""
+if not re.search(r"^\s*- name: plain$", text, re.M):
+    add += block("- name: plain\n  port: 9092\n  type: internal\n  tls: false")
+if not re.search(r"^\s*- name: external$", text, re.M):
+    add += block("""- name: external
   port: 9094
   type: nodeport
   tls: false
@@ -93,12 +124,10 @@ block = """- name: plain
       - broker: 1
         nodePort: 31096
       - broker: 2
-        nodePort: 31097
-"""
-block = "".join(indent + line + "\n" for line in block.splitlines())
-open(path, "w").write(re.sub(r"^( *listeners:\n)", lambda m: m.group(1) + block, text, count=1, flags=re.M))
+        nodePort: 31097""")
+text = re.sub(r"^( *listeners:\n)", lambda m: m.group(1) + add, text, count=1, flags=re.M)
+open(path, "w").write(text)
 PY
-    echo "cluster/nordwind-kafka.yaml: the listeners plain and external are back"
   fi
   sleep 10
   kubectl "${N[@]}" wait "kafka/${KAFKA_CLUSTER}" --for=condition=Ready --timeout=1200s
