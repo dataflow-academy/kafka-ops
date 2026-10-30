@@ -19,7 +19,7 @@ kubectl -n "$NS" wait "kafka/$KAFKA_CLUSTER" --for=condition=Ready --timeout=5s 
 n=$(kubectl -n "$NS" get pods -l strimzi.io/kind=Kafka --no-headers 2>/dev/null | grep -c ' 1/1 .*Running' || true)
 # as many pods as the node pools of the cluster ask for (the group chose the numbers in the design lab)
 want=$(kubectl -n "$NS" get kafkanodepool -l "strimzi.io/cluster=$KAFKA_CLUSTER" -o jsonpath='{range .items[*]}{.spec.replicas}{"\n"}{end}' 2>/dev/null | awk '{s += $1} END {print s + 0}')
-[ "$n" -ge "${want:-6}" ] && [ "$n" -gt 0 ] || bad "only $n of $want broker and controller pods are running and ready"
+if [ "$n" -lt "${want:-6}" ] || [ "$n" -eq 0 ]; then bad "only $n of $want broker and controller pods are running and ready"; fi
 
 ensure_tools
 if out=$(timeout 40 kubectl -n "$NS" exec deploy/kafka-tools -- kafka-topics.sh --bootstrap-server "$BOOTSTRAP" --describe --under-replicated-partitions 2>&1); then
