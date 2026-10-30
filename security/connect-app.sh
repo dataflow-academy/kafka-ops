@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Connects a team's application with its Kafka user, the same change the lab makes by hand for the control room:
-# copies the Secrets into the team's namespace (copy-secrets.sh) and sets the bootstrap address and six client
-# settings on the Deployment, so that the application connects with mutual TLS to the tls listener.
+# creates the KafkaUser without ACLs if it does not exist yet (an identity only: with allow.everyone.if.no.acl.found
+# the application may still use every resource without ACLs), copies the Secrets into the team's namespace
+# (copy-secrets.sh) and sets the bootstrap address and six client settings on the Deployment, so that the application
+# connects with mutual TLS to the tls listener.
 #
 #   ./connect-app.sh <deployment> <user> [namespace]      e.g.  ./connect-app.sh scada-telemetry scada
 #
@@ -15,6 +17,12 @@ need kubectl
 deploy="${1:?usage: connect-app.sh <deployment> <user> [namespace]}"; user="${2:?}"; ns="${3:-windpark}"
 
 kubectl -n "$ns" get deployment "$deploy" >/dev/null || die "No Deployment '$deploy' in the namespace $ns."
+if ! kubectl -n "$KAFKA_NAMESPACE" get kafkauser "$user" >/dev/null 2>&1; then
+  printf 'apiVersion: kafka.strimzi.io/v1\nkind: KafkaUser\nmetadata:\n  name: %s\n  namespace: %s\n  labels:\n    strimzi.io/cluster: %s\nspec:\n  authentication:\n    type: tls\n' \
+    "$user" "$KAFKA_NAMESPACE" "$KAFKA_CLUSTER" | kubectl apply -f -
+  echo "KafkaUser $user created without ACLs"
+fi
+kubectl -n "$KAFKA_NAMESPACE" wait "kafkauser/$user" --for=condition=Ready --timeout=120s >/dev/null
 "$(dirname "$0")/copy-secrets.sh" "$user" "$ns"
 
 container="$(kubectl -n "$ns" get deployment "$deploy" -o jsonpath='{.spec.template.spec.containers[0].name}')"
