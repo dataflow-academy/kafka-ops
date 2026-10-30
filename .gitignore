@@ -3,3 +3,5 @@ __pycache__/
 cluster/nordwind-kafka.yaml.bak
 dr/neighbor-ca.crt
 dr/my-ca.crt
+security/platform.properties
+security/platform-ca.crt
