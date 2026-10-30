@@ -1,0 +1,12 @@
+# The platform team on the Kafka tools from outside the cluster: a user with a password on the listener external. It has
+# no ACLs, the cluster names it as a super user (spec.kafka.authorization.superUsers: platform).
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaUser
+metadata:
+  name: platform
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  authentication:
+    type: scram-sha-512
