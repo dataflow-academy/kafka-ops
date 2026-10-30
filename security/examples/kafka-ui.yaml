@@ -1,0 +1,13 @@
+# Kafka UI is a tool of the platform team: it has to see every topic and every group. It gets an identity and no ACLs;
+# the cluster names it as a super user (spec.kafka.authorization.superUsers: CN=kafka-ui). An ACL with the name `*`
+# would do the same for Kafka UI, but it names every topic: from then on nobody else without an ACL may use any of them.
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaUser
+metadata:
+  name: kafka-ui
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: nordwind-kafka
+spec:
+  authentication:
+    type: tls
